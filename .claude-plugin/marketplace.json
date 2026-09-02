@@ -1,0 +1,11 @@
+{
+  "name": "sls-global",
+  "owner": { "name": "SLS Global" },
+  "plugins": [
+    {
+      "name": "softrade-batch",
+      "source": "./",
+      "description": "Bulk-download Softrade foreign-trade reports from a plain-language request, resumable across chat sessions."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "softrade-batch",
+  "description": "Pull foreign-trade data out of Softrade from a plain-language request, and survive batches too long for one chat session.",
+  "version": "0.1.0",
+  "author": {
+    "name": "SLS Global"
+  },
+  "keywords": [
+    "softrade",
+    "comercio exterior",
+    "foreign trade",
+    "importaciones",
+    "exportaciones",
+    "scraping",
+    "browser"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/mauroemartinez/softrade-batch"
+}
