@@ -1,0 +1,39 @@
+# Datos descargados de Softrade
+#
+# Contienen nombres reales de empresas, y en el caso de las Cargas tambien
+# direcciones, emails y telefonos. Son datos licenciados de Softrade, no nuestros
+# para redistribuir. Se usan para documentar columnas y NO se publican.
+ejemplos_queries/
+runs/
+downloads/
+
+# Cualquier planilla suelta, por las dudas
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+*.crdownload
+*.part
+
+# El manifiesto de una corrida registra que se bajo y cuando
+manifest.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Windows y OneDrive
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# macOS, por si alguien clona desde ahi
+.DS_Store

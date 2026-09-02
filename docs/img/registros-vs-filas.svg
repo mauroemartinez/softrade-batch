@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 420" width="880" height="420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <rect width="880" height="420" rx="10" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="879" height="419" rx="10" fill="none" stroke="#d8dee4"/>
+
+  <text x="28" y="40" font-size="17" font-weight="700" fill="#1f2328">La trampa: el tope de 30.000 cuenta registros, no filas del Excel</text>
+  <text x="28" y="63" font-size="13" fill="#636c76">Una declaración aduanera se abre en una fila por ítem. Por eso contar filas no te dice si el archivo está cortado.</text>
+
+  <!-- left: one record -->
+  <text x="28" y="98" font-size="13" font-weight="700" fill="#1f2328">1 declaración en la aduana</text>
+  <rect x="28" y="110" width="230" height="86" rx="7" fill="#f2f7ff" stroke="#5a9bf5" stroke-width="1.5"/>
+  <text x="44" y="134" font-size="12" fill="#424a53">Identificador</text>
+  <text x="44" y="153" font-size="12.5" font-weight="700" fill="#1f2328" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">26001IC04013595S</text>
+  <text x="44" y="176" font-size="11.5" fill="#636c76">Un despacho. Cuenta como</text>
+  <text x="44" y="190" font-size="11.5" font-weight="700" fill="#1f6feb">1 registro para el tope.</text>
+
+  <!-- arrow -->
+  <path d="M266 153 L316 153" stroke="#8c959f" stroke-width="1.5" fill="none" marker-end="url(#b)"/>
+  <defs>
+    <marker id="b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8c959f"/>
+    </marker>
+  </defs>
+  <text x="272" y="143" font-size="11" fill="#636c76">se abre en</text>
+
+  <!-- right: rows -->
+  <text x="326" y="98" font-size="13" font-weight="700" fill="#1f2328">6 filas en el Excel</text>
+  <g font-size="11.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <rect x="326" y="110" width="300" height="22" fill="#f6f8fa" stroke="#d8dee4"/>
+    <text x="338" y="125" fill="#424a53">Item 1  ...  8544.42.00.110</text>
+    <rect x="326" y="132" width="300" height="22" fill="#ffffff" stroke="#d8dee4"/>
+    <text x="338" y="147" fill="#424a53">Item 2  ...  8501.51.10.990</text>
+    <rect x="326" y="154" width="300" height="22" fill="#f6f8fa" stroke="#d8dee4"/>
+    <text x="338" y="169" fill="#424a53">Item 3  ...  8501.51.10.990</text>
+    <rect x="326" y="176" width="300" height="22" fill="#ffffff" stroke="#d8dee4"/>
+    <text x="338" y="191" fill="#424a53">Item 4  ...  8414.59.90.900</text>
+    <rect x="326" y="198" width="300" height="22" fill="#f6f8fa" stroke="#d8dee4"/>
+    <text x="338" y="213" fill="#424a53">Item 5  ...  9031.80.99.990</text>
+    <rect x="326" y="220" width="300" height="22" fill="#ffffff" stroke="#d8dee4"/>
+    <text x="338" y="235" fill="#424a53">Item 6  ...  8538.90.90.000</text>
+  </g>
+  <text x="642" y="170" font-size="11.5" fill="#636c76">Mismo Identificador</text>
+  <text x="642" y="187" font-size="11.5" fill="#636c76">en las 6 filas.</text>
+
+  <!-- measured table -->
+  <text x="28" y="278" font-size="13" font-weight="700" fill="#1f2328">Medido sobre archivos reales</text>
+  <g font-size="12">
+    <rect x="28" y="290" width="824" height="26" fill="#f6f8fa" stroke="#d8dee4"/>
+    <text x="42" y="307" font-weight="700" fill="#1f2328">Reporte</text>
+    <text x="420" y="307" font-weight="700" fill="#1f2328">Filas</text>
+    <text x="560" y="307" font-weight="700" fill="#1f2328">Registros</text>
+    <text x="710" y="307" font-weight="700" fill="#1f2328">Filas por registro</text>
+
+    <rect x="28" y="316" width="824" height="26" fill="#ffffff" stroke="#d8dee4"/>
+    <text x="42" y="333" fill="#424a53">AR Importaciones Detalladas</text>
+    <text x="420" y="333" fill="#424a53">143</text>
+    <text x="560" y="333" fill="#424a53">22</text>
+    <text x="710" y="333" font-weight="700" fill="#1f2328">6,50</text>
+
+    <rect x="28" y="342" width="824" height="26" fill="#f6f8fa" stroke="#d8dee4"/>
+    <text x="42" y="359" fill="#424a53">AR Exportaciones Detalladas</text>
+    <text x="420" y="359" fill="#424a53">53.525</text>
+    <text x="560" y="359" fill="#424a53">25.162</text>
+    <text x="710" y="359" font-weight="700" fill="#1f2328">2,13</text>
+
+    <rect x="28" y="368" width="824" height="26" fill="#ffffff" stroke="#d8dee4"/>
+    <text x="42" y="385" fill="#424a53">AR Otras Operaciones</text>
+    <text x="420" y="385" fill="#424a53">25</text>
+    <text x="560" y="385" fill="#424a53">12</text>
+    <text x="710" y="385" font-weight="700" fill="#1f2328">2,08</text>
+  </g>
+
+  <text x="28" y="412" font-size="12" fill="#8a4600">El archivo de 53.525 filas está COMPLETO, porque son 25.162 registros. Uno de 30.000 filas podría estar cortado. La relación va de 2 a 6,5, así que tampoco se puede estimar.</text>
+</svg>
