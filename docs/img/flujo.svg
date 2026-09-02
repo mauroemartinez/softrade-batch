@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300" width="880" height="300" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <rect width="880" height="300" rx="10" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="879" height="299" rx="10" fill="none" stroke="#d8dee4"/>
+
+  <text x="28" y="40" font-size="17" font-weight="700" fill="#1f2328">Cómo es una descarga, de punta a punta</text>
+  <text x="28" y="63" font-size="13" fill="#636c76">Vos solo hacés los pasos 1, 2 y 3. El resto lo hace la herramienta.</text>
+
+  <!-- step 1 -->
+  <rect x="28" y="88" width="150" height="118" rx="8" fill="#f2f7ff" stroke="#5a9bf5" stroke-width="1.5"/>
+  <circle cx="48" cy="110" r="11" fill="#1f6feb"/>
+  <text x="48" y="115" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="68" y="115" font-size="13" font-weight="700" fill="#1f2328">Pedís</text>
+  <text x="42" y="141" font-size="11.5" fill="#424a53">Escribís en</text>
+  <text x="42" y="158" font-size="11.5" fill="#424a53">castellano lo que</text>
+  <text x="42" y="175" font-size="11.5" fill="#424a53">necesitás. Sin</text>
+  <text x="42" y="192" font-size="11.5" fill="#424a53">comandos raros.</text>
+
+  <!-- step 2 -->
+  <rect x="203" y="88" width="150" height="118" rx="8" fill="#f2f7ff" stroke="#5a9bf5" stroke-width="1.5"/>
+  <circle cx="223" cy="110" r="11" fill="#1f6feb"/>
+  <text x="223" y="115" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="243" y="115" font-size="13" font-weight="700" fill="#1f2328">Te logueás</text>
+  <text x="217" y="141" font-size="11.5" fill="#424a53">Te abre la pestaña</text>
+  <text x="217" y="158" font-size="11.5" fill="#424a53">y entrás vos.</text>
+  <text x="217" y="175" font-size="11.5" font-weight="700" fill="#8a4600">Tu contraseña</text>
+  <text x="217" y="192" font-size="11.5" font-weight="700" fill="#8a4600">no la ve nadie.</text>
+
+  <!-- step 3 -->
+  <rect x="378" y="88" width="150" height="118" rx="8" fill="#f2f7ff" stroke="#5a9bf5" stroke-width="1.5"/>
+  <circle cx="398" cy="110" r="11" fill="#1f6feb"/>
+  <text x="398" y="115" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="418" y="115" font-size="13" font-weight="700" fill="#1f2328">Confirmás</text>
+  <text x="392" y="141" font-size="11.5" fill="#424a53">Te muestra qué</text>
+  <text x="392" y="158" font-size="11.5" fill="#424a53">empresa encontró</text>
+  <text x="392" y="175" font-size="11.5" fill="#424a53">y qué va a</text>
+  <text x="392" y="192" font-size="11.5" fill="#424a53">consultar.</text>
+
+  <!-- step 4 -->
+  <rect x="553" y="88" width="150" height="118" rx="8" fill="#f6f8fa" stroke="#d8dee4" stroke-width="1.5"/>
+  <circle cx="573" cy="110" r="11" fill="#6e7781"/>
+  <text x="573" y="115" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="593" y="115" font-size="13" font-weight="700" fill="#1f2328">Descarga</text>
+  <text x="567" y="141" font-size="11.5" fill="#424a53">Llena el formulario,</text>
+  <text x="567" y="158" font-size="11.5" fill="#424a53">busca, baja el Excel</text>
+  <text x="567" y="175" font-size="11.5" fill="#424a53">y lo renombra con</text>
+  <text x="567" y="192" font-size="11.5" fill="#424a53">el período adentro.</text>
+
+  <!-- step 5 -->
+  <rect x="728" y="88" width="124" height="118" rx="8" fill="#f0f9f2" stroke="#4ac26b" stroke-width="1.5"/>
+  <circle cx="748" cy="110" r="11" fill="#1a7f37"/>
+  <text x="748" y="115" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="768" y="115" font-size="13" font-weight="700" fill="#1f2328">Verifica</text>
+  <text x="742" y="141" font-size="11.5" fill="#424a53">Cuenta registros</text>
+  <text x="742" y="158" font-size="11.5" fill="#424a53">y avisa si el</text>
+  <text x="742" y="175" font-size="11.5" font-weight="700" fill="#1a7f37">archivo salió</text>
+  <text x="742" y="192" font-size="11.5" font-weight="700" fill="#1a7f37">cortado.</text>
+
+  <!-- arrows -->
+  <g stroke="#8c959f" stroke-width="1.5" fill="none">
+    <path d="M182 147 L199 147" marker-end="url(#a)"/>
+    <path d="M357 147 L374 147" marker-end="url(#a)"/>
+    <path d="M532 147 L549 147" marker-end="url(#a)"/>
+    <path d="M707 147 L724 147" marker-end="url(#a)"/>
+  </g>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8c959f"/>
+    </marker>
+  </defs>
+
+  <!-- footer note -->
+  <rect x="28" y="228" width="824" height="48" rx="7" fill="#fff8e6" stroke="#e5c675"/>
+  <text x="46" y="249" font-size="12.5" font-weight="700" fill="#7d4e00">Si el chat se corta a la mitad de una corrida larga</text>
+  <text x="46" y="267" font-size="12" fill="#7d4e00">Abrís uno nuevo y decís "seguí la corrida de Softrade". Retoma en la descarga exacta donde quedó, sin repetir lo ya bajado.</text>
+</svg>
