@@ -1,0 +1,678 @@
+{
+  "version": 1,
+  "label": "cobertura de columnas -- sub-run claude",
+  "created_at": "2026-09-02",
+  "download_dir": "downloads",
+  "max_months": 1,
+  "catalog_version": "2026-09-02",
+  "date_convention": "latest = ultimo mes cerrado que el form muestre cargado; se resuelve en vivo. Ver corrida-catalogo/README.md",
+  "parent": "corrida-catalogo/manifest.json",
+  "jobs": [
+    {
+      "country": "AR",
+      "report": "export",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "done",
+      "file": "detalle_ARexport_2026-8-3-174731.xlsx",
+      "rows": 4,
+      "records": 4,
+      "attempts": 0,
+      "note": "F3 Exportaciones standard · pass A · partida 4 digitos · medido 2026-09-03 (ver columns.md); bookkeeping corregido, la sesion original quedo con rows:0",
+      "updated_at": "2026-09-03T15:54:15"
+    },
+    {
+      "country": "EC",
+      "report": "historicoImport",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F5 Historico · pass A · partida 4 digitos · form Histórico no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "EC",
+      "report": "historicoExport",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F5 Historico · pass A · partida 4 digitos · form Histórico no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "EC",
+      "report": "cargasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F7 Cargas Ingresos/Salidas · pass A · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "EC",
+      "report": "cargasSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F7 Cargas Ingresos/Salidas · pass A · partida 4 digitos · no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "MX",
+      "report": "cargasTotalesIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F8 Cargas Totales · pass A · partida 4 digitos · única data mexicana viva y con nombres; ambas puntas",
+      "updated_at": null
+    },
+    {
+      "country": "MX",
+      "report": "cargasTotalesSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F8 Cargas Totales · pass A · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "UY",
+      "report": "cargasAereas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F9 Cargas Aereas/Terrestres · pass A · partida 4 digitos · no relevado; manifiestos aéreos, solo UY",
+      "updated_at": null
+    },
+    {
+      "country": "UY",
+      "report": "cargasTerrestres",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F9 Cargas Aereas/Terrestres · pass A · partida 4 digitos · no relevado; manifiestos terrestres, solo UY",
+      "updated_at": null
+    },
+    {
+      "country": "BR",
+      "report": "cargasHistoricoIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F10 Cargas Historico · pass A · partida 4 digitos · no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "BR",
+      "report": "cargasHistoricoSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F10 Cargas Historico · pass A · partida 4 digitos · no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "CR",
+      "report": "zonaFranca",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F12 Zona Franca/Libre · pass A · partida 4 digitos · movimientos de zona franca; nombra solo al operador",
+      "updated_at": null
+    },
+    {
+      "country": "PA",
+      "report": "zonaLibreIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F12 Zona Franca/Libre · pass A · partida 4 digitos · nombra al operador de zona libre y a su proveedor extranjero",
+      "updated_at": null
+    },
+    {
+      "country": "PA",
+      "report": "zonaLibreSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F12 Zona Franca/Libre · pass A · partida 4 digitos · no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "UY",
+      "report": "transitos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F13 Transitos · pass A · partida 4 digitos · mercadería en tránsito, tipo de registro distinto; solo UY",
+      "updated_at": null
+    },
+    {
+      "country": "ES",
+      "report": "importTotalizadas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F14 Totalizadas · pass A · partida 4 digitos · pese al nombre, es el dataset UE estándar (euros, FOB, País de Procedencia); más nuevo que 'Importaciones'",
+      "updated_at": null
+    },
+    {
+      "country": "AR",
+      "report": "otrasOperaciones",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "F11 Otras Operaciones · pass A · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "UY",
+      "report": "normativa",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "Normativa · pass A · partida 4 digitos · regulaciones, no data de comercio exterior",
+      "updated_at": null
+    },
+    {
+      "country": "NI",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "done",
+      "file": "detalle_NIexportDetalladas_2026-8-4-152245.xlsx",
+      "rows": 454,
+      "records": 454,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · muestra bajada 2026-08-04 (454 filas/454 registros); columnas aún sin documentar",
+      "updated_at": "2026-09-03T15:23:04"
+    },
+    {
+      "country": "DO",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · el form de export trae Empresa Naviera",
+      "updated_at": null
+    },
+    {
+      "country": "RU",
+      "report": "importDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2023; ambas puntas",
+      "updated_at": null
+    },
+    {
+      "country": "RU",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2023; ambas puntas",
+      "updated_at": null
+    },
+    {
+      "country": "TR",
+      "report": "importDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2023; ambas puntas",
+      "updated_at": null
+    },
+    {
+      "country": "TR",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2023; ambas puntas",
+      "updated_at": null
+    },
+    {
+      "country": "BR",
+      "report": "importDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 11/2021",
+      "updated_at": null
+    },
+    {
+      "country": "BR",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 11/2021",
+      "updated_at": null
+    },
+    {
+      "country": "GT",
+      "report": "importDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2021; anónimo",
+      "updated_at": null
+    },
+    {
+      "country": "GT",
+      "report": "exportDetalladas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B1 Detalladas restantes · pass B · partida 4 digitos · congelada 12/2021; anónimo",
+      "updated_at": null
+    },
+    {
+      "country": "US",
+      "report": "cargasMaritimasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · punto de entrada más rico para impo de EEUU; ojo con 'Incluir Masters' (doble conteo de un mismo embarque)",
+      "updated_at": null
+    },
+    {
+      "country": "PE",
+      "report": "cargasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "PA",
+      "report": "cargasMaritimasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · sin filtro Shipper, solo lado consignatario",
+      "updated_at": null
+    },
+    {
+      "country": "VE",
+      "report": "cargasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "UY",
+      "report": "cargasMaritimas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos",
+      "updated_at": null
+    },
+    {
+      "country": "GT",
+      "report": "cargasIngresos",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · muy vieja, 09/2019",
+      "updated_at": null
+    },
+    {
+      "country": "BR",
+      "report": "cargasMaritimasSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · contraparte de Ingresos, no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "PA",
+      "report": "cargasMaritimasSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · no relevado",
+      "updated_at": null
+    },
+    {
+      "country": "US",
+      "report": "cargasMaritimasSalidas",
+      "date_from": "latest",
+      "date_to": "latest",
+      "filters": {
+        "ncm": [
+          "8544"
+        ]
+      },
+      "status": "pending",
+      "file": null,
+      "rows": null,
+      "records": null,
+      "attempts": 0,
+      "note": "B2 Cargas restantes · pass B · partida 4 digitos · no relevado",
+      "updated_at": null
+    }
+  ]
+}
