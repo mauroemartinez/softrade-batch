@@ -1,25 +1,25 @@
 # Verification coverage tracker
 
 What has actually been confirmed by downloading a real file, versus what is only
-known from the catalog. Update this file whenever a new report gets verified — see
+known from the catalog. Update this file whenever a new report gets verified, see
 "Learning a new report type" in `SKILL.md`. Do not check a box from reading the
 form; check it only after `inspect_download.py` has run against a real export.
 
 ## The three layers
 
-1. **Catalog** — which reports exist per country. **Complete**, 78 countries
+1. **Catalog**: which reports exist per country. **Complete**, 78 countries
    (`catalog.md`).
-2. **Entity filters** — whether each report can filter by company, and how current
+2. **Entity filters**: whether each report can filter by company, and how current
    the data is. **Complete**, import and export sides, all 78 countries
    (`entities-latam.md`, `entities-world.md`).
-3. **Column layout** — what a real downloaded Excel contains: column count, names,
+3. **Column layout**: what a real downloaded Excel contains: column count, names,
    the row/record ratio, quirks like duplicated columns or a literal
    `No disponible`. **This is the layer that is mostly open.** Everything below
    tracks layer 3.
 
 Layer 3 has two outputs, and a new measurement must land in both:
 `columns-latam.md` (or a new `columns-<region>.md`) for the full column list, and
-**`fields-matrix.md`** for the one-line answer on vitality and the key fields —
+**`fields-matrix.md`** for the one-line answer on vitality and the key fields:
 FOB, CIF, Importador, Proveedor, Incoterm, Marca. The matrix is what gets consulted
 before promising a field to a user; the column list is what gets consulted while
 building the query. Twenty reports are in the matrix today.
@@ -71,26 +71,26 @@ families have never been opened at all.**
 |---|---|---|---|---|
 | 1 | Importaciones (standard) | all 78 | AR | partial |
 | 2 | Importaciones Detalladas | AR BR GT NI DO RU TR | AR | partial |
-| 3 | Exportaciones (standard) | 77 (not KE) | — | **never run** |
+| 3 | Exportaciones (standard) | 77 (not KE) | no | **never run** |
 | 4 | Exportaciones Detalladas | AR BR GT NI DO RU TR | AR | partial |
-| 5 | Histórico Imp. / Exp. | BO CO EC HN VE PH ID VN AU CA KE | — | **never opened** |
+| 5 | Histórico Imp. / Exp. | BO CO EC HN VE PH ID VN AU CA KE | no | **never opened** |
 | 6 | Cargas Marítimas Ing./Sal. | BR PA US | BR Ingresos | partial |
-| 7 | Cargas Ingresos / Salidas | EC PE VE GT | — | **never opened** |
-| 8 | Cargas Totales Ing./Sal. | MX | — | **never opened** |
-| 9 | Cargas Aéreas / Terrestres | UY | — | **never opened** |
-| 10 | Cargas Histórico Ing./Sal. | BR | — | **never opened** |
+| 7 | Cargas Ingresos / Salidas | EC PE VE GT | no | **never opened** |
+| 8 | Cargas Totales Ing./Sal. | MX | no | **never opened** |
+| 9 | Cargas Aéreas / Terrestres | UY | no | **never opened** |
+| 10 | Cargas Histórico Ing./Sal. | BR | no | **never opened** |
 | 11 | Otras Operaciones | AR MX | AR (ratio only) | partial |
-| 12 | Zona Franca / Zona Libre | CR (Franca), PA (Libre Ing./Sal.) | — | **never opened** |
-| 13 | Tránsitos | UY | — | **never opened** |
-| 14 | Totalizadas | ES | — | **never opened** |
-| — | Normativa | UY | — | never opened, **not trade data** |
-| — | Vista Global | cross-country | — | **never exported** |
-| — | Consulta Regional | cross-country | — | **never exported**, aggregated |
+| 12 | Zona Franca / Zona Libre | CR (Franca), PA (Libre Ing./Sal.) | no | **never opened** |
+| 13 | Tránsitos | UY | no | **never opened** |
+| 14 | Totalizadas | ES | no | **never opened** |
+| no | Normativa | UY | no | never opened, **not trade data** |
+| no | Vista Global | cross-country | no | **never exported** |
+| no | Consulta Regional | cross-country | no | **never exported**, aggregated |
 
 `Normativa` is regulations, not customs records. One look to confirm it carries no
 exportable dataset, then drop it from this tracker for good.
 
-## Pass A — one country per unknown family
+## Pass A: one country per unknown family
 
 The whole point of this pass is **one file per family**, cheapest representative,
 to learn the shape. Do not chase countries here.
@@ -140,14 +140,14 @@ next to the Cargas Marítimas layout already measured.
       exported.
 - [ ] **Consulta Regional** → `/home/formulario/01/regional`. Aggregated by entity
       and year; may offer no Excel at all. Confirm which.
-- [ ] **AR Acumulados and Empresas modules** — seen in the site, never opened.
+- [ ] **AR Acumulados and Empresas modules**, seen in the site, never opened.
       Establish whether they are reports or navigation.
 
 Completing Pass A means **every family in Softrade has one measured example**, and
 any future request can be answered with "here is the shape of that report" instead
 of a guess.
 
-## Pass B — countries that name companies
+## Pass B: countries that name companies
 
 Only now go wide, and only where the data can answer a company question. Everything
 here is a known family, so each file is cheap.
@@ -187,7 +187,7 @@ Filters are documented for every row (`cargas.md`); **column layouts are not.**
 | GT Guatemala | Cargas Ingresos | Consignatario, Shipper | 30/09/2019 | low (stale) |
 
 - [ ] US Cargas Marítimas Ingresos (watch `Incluir Masters`, see `cargas.md`)
-- [ ] PE, PA, VE, UY, GT — whichever Cargas variant each offers
+- [ ] PE, PA, VE, UY, GT: whichever Cargas variant each offers
 - [ ] Salidas counterparts for BR, PA, US
 
 ### B3 · Export-side columns, Latin America
@@ -196,9 +196,9 @@ Import-side columns are measured for all 19 (`columns-latam.md`). The export sid
 unmeasured everywhere except Argentina. The 8 countries naming both sides matter
 most, since they answer "who does this exporter sell to":
 
-- [ ] BO, CO, EC, CR, NI, PA, DO — Exportaciones, columns + `Comprador` behavior
-- [ ] CL, UY, VE — Exportaciones, columns (no counterparty named)
-- [ ] PY — Exportaciones (*Probable Exportador* — confirm the same caveat as the
+- [ ] BO, CO, EC, CR, NI, PA, DO: Exportaciones, columns + `Comprador` behavior
+- [ ] CL, UY, VE: Exportaciones, columns (no counterparty named)
+- [ ] PY, Exportaciones (*Probable Exportador*, confirm the same caveat as the
       import side)
 
 ### B4 · Asia, Africa and Ukraine
@@ -207,34 +207,34 @@ The 17 countries outside Latin America that name a company on at least one side.
 Zero column layouts exist for any of them.
 
 Asia (`entities-world.md`): BD (imports only), PH, ID, KZ, PK, LK, UZ, VN
-— RU and TR are covered in B1.
+RU and TR are covered in B1.
 
-- [ ] BD, PH, ID, KZ, PK, LK, UZ, VN — Importaciones + Exportaciones
+- [ ] BD, PH, ID, KZ, PK, LK, UZ, VN: Importaciones + Exportaciones
 
 Africa: ET, KE (imports only), LS, NG, UG, ZW
 
-- [ ] ET, LS, NG, UG, ZW — Importaciones + Exportaciones
-- [ ] KE — Importaciones (no export report exists)
+- [ ] ET, LS, NG, UG, ZW: Importaciones + Exportaciones
+- [ ] KE: Importaciones (no export report exists)
 
 Europe: only Ukraine names anyone.
 
-- [ ] UA — Importaciones + Exportaciones
+- [ ] UA: Importaciones + Exportaciones
 
-**Order within B4:** Vietnam and Pakistan first — both current, both sides, no
-known quirks — to get a clean baseline before the messier ones. Vietnam also
+**Order within B4:** Vietnam and Pakistan first, both current, both sides, no
+known quirks, to get a clean baseline before the messier ones. Vietnam also
 carries Histórico, so pair it with family 5 if EC surfaced anything odd.
 
-## Pass C — anonymous countries
+## Pass C: anonymous countries
 
 These can only answer product, flow and price questions, never company questions.
 One column pass each so the catalog is complete, done last.
 
-- [ ] CL, PY — export side (import already measured)
-- [ ] SV, HN, PR — both sides anonymous, thin files (8-11 columns, quick)
-- [ ] MX, BR — Importaciones / Exportaciones proper (Cargas is the real data)
-- [ ] CN, KR, IN, IL, JP, TH, TW — Asia, both directions
-- [ ] EG, MA, ZA — Africa, both directions
-- [ ] AU, NZ — Oceania, both directions
+- [ ] CL, PY: export side (import already measured)
+- [ ] SV, HN, PR: both sides anonymous, thin files (8-11 columns, quick)
+- [ ] MX, BR: Importaciones / Exportaciones proper (Cargas is the real data)
+- [ ] CN, KR, IN, IL, JP, TH, TW: Asia, both directions
+- [ ] EG, MA, ZA: Africa, both directions
+- [ ] AU, NZ: Oceania, both directions
 - [ ] Europe: sample **one** EU-block country (e.g. DE), since all 28 non-Spain,
       non-Ukraine members reportedly share one filter set and cutoff. Confirm that
       assumption on one country rather than running all 28. Then GB separately
@@ -244,11 +244,11 @@ One column pass each so the catalog is complete, done last.
 ## How to work through this
 
 1. Take the next unchecked box in **Pass A**. Only start Pass B once Pass A has no
-   boxes left — a new family teaches more than a new country.
+   boxes left, since a new family teaches more than a new country.
 2. Follow `site-flow.md` for the mechanics: flag menu, calendar widget for Periodo,
    the 12-month ceiling, JS `.click()` on `ion-img.imgBotonDescarga`, filesystem
    check, never the results grid.
-3. Keep each verification query **deliberately tiny** — one month, one NCM code if
+3. Keep each verification query **deliberately tiny**: one month, one NCM code if
    the form allows it. This pass is measuring column layouts, not gathering data,
    so there is no reason to pull a big file.
 4. Run `inspect_download.py` on the file.
@@ -256,9 +256,9 @@ One column pass each so the catalog is complete, done last.
    new `columns-<region>.md` following the format of `columns-latam.md`, **add the
    row to `fields-matrix.md`**, and check the box here. A measurement that is not
    in the matrix is a measurement nobody will find.
-6. If a report behaves differently from what `site-flow.md` documents — a filter in
+6. If a report behaves differently from what `site-flow.md` documents, such as a filter in
    a different place, a Periodo field that is free text instead of a calendar,
-   Puerto appearing where it did not in Argentina — add a note to `site-flow.md`
+   Puerto appearing where it did not in Argentina, add a note to `site-flow.md`
    rather than assuming it matches.
 7. When a family turns out to be structurally different from the customs-declaration
    reports (Cargas already is; Zona Franca, Tránsitos and Totalizadas may be),

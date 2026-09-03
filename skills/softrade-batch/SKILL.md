@@ -161,7 +161,7 @@ download into twelve, of which eleven come back empty:
    The original job is marked `split`, the monthly jobs are appended, and every
    index you already handed out still points at the same job.
 3. **If a single month still truncates,** period splitting is exhausted. Narrow
-   the query itself — an NCM-SIM code, an aduana, a country of origin — and plan
+   the query itself (an NCM-SIM code, an aduana, a country of origin) and plan
    those as separate jobs.
 
 The only case for splitting up front is a query you already know is enormous: a
@@ -216,7 +216,7 @@ Repeat until `next` reports the run is complete:
 3. Set the filters in the browser for that job, per `references/site-flow.md`.
    The Periodo fields need the calendar widget, `form_input` on them fails
    silently, and **calendar clicks have applied even when the tool reported a
-   timeout** — so read the field back and retry only if its value did not change.
+   timeout**, so read the field back and retry only if its value did not change.
    If the job carries an NCM-SIM code, **count the chips**: the field spawns a
    phantom empty chip that breaks the search.
 4. Fire the search, then **check the page for "demasiado extensa" before doing
@@ -297,7 +297,7 @@ explicitly with the note, rather than presenting the run as complete.
 
 **Always report rows and operations as two numbers.** They are not the same thing
 and users read whichever one you give them as "how much data I got". One real run
-was **17 rows but only 2 customs operations** — quoting 17 alone overstates it by
+was **17 rows but only 2 customs operations**. Quoting 17 alone overstates it by
 eight times. `status` prints both plus the ratio; pass both on.
 
 **Verify a segmented run that came back mostly empty.** If the run was split into
