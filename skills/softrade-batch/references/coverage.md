@@ -5,6 +5,13 @@ known from the catalog. Update this file whenever a new report gets verified, se
 "Learning a new report type" in `SKILL.md`. Do not check a box from reading the
 form; check it only after `inspect_download.py` has run against a real export.
 
+**The operational checklist is `corrida-catalogo/manifest.json`** (112 jobs, one
+per country/report, in the Pass A→B→C order below). `run_state.py next
+corrida-catalogo` hands you the next box; `run_state.py check` validates it. This
+file is the *why* behind that order and the field notes per box; the manifest is
+the *state*. Keep them in step: when you measure a report, record it against the
+job and tick it here.
+
 ## The three layers
 
 1. **Catalog**: which reports exist per country. **Complete**, 78 countries
