@@ -76,7 +76,7 @@ an older one, this section is what was actually observed.
 
 Both Periodo fields arrive pre-filled with the newest month Softrade holds
 (`07/2026` on Argentina). **A single-month query on the newest month therefore
-needs no calendar interaction at all** — read the two fields back, confirm, and
+needs no calendar interaction at all**: read the two fields back, confirm, and
 search. That removes the most fragile step in the whole flow from the majority of
 coverage-style queries. Only reach for the widget when you need an older period.
 
@@ -111,9 +111,9 @@ running, or the answer is genuinely empty.
 
 Tell them apart in this order:
 
-1. `document.querySelector('ion-loading,.loading-wrapper')` — still running.
-2. URL changed to `/home/detalle/...` — it worked.
-3. Neither, after the spinner is gone — either an empty result or a dead click.
+1. `document.querySelector('ion-loading,.loading-wrapper')`, still running.
+2. URL changed to `/home/detalle/...`, it worked.
+3. Neither, after the spinner is gone, either an empty result or a dead click.
    Re-click Buscar by coordinate once. If it still does not move, treat it as
    genuinely empty and `skip` the job.
 
@@ -157,7 +157,7 @@ against Ionic selectors will not find it.
 wrong conclusions before it was spotted.**
 
 In one session: the first search returned data and downloaded fine. Every search
-after it returned nothing — across three countries, five reports, filtered and
+after it returned nothing, across three countries, five reports, filtered and
 unfiltered. The run ended by searching **AR Importaciones Detalladas, one month, no
 filters at all**, a query whose result is known to be 25,061 records. It returned
 nothing, with no message.
@@ -178,7 +178,7 @@ exhausted (Softrade shows consumption nowhere, so this is invisible), or the ser
 throttles after a burst of queries.
 
 **What to do about it.** Before concluding that any report lacks data, run a
-**canary query**: a report and period known to return a large result — AR
+**canary query**: a report and period known to return a large result, AR
 Importaciones Detalladas, one recent month, no filters, which should trigger
 `demasiado extensa` immediately. If the canary comes back empty, the session is
 broken and **every "sin datos" result since the last good download is worthless**.
@@ -269,7 +269,7 @@ retries after a "timeout" therefore double-click months and land on the wrong on
 Never retry on the tool's return value. Retry on the field's value:
 
 1. Open the picker.
-2. Pick the month **by index** rather than by hunting for its label — the grid is
+2. Pick the month **by index** rather than by hunting for its label, the grid is
    a fixed 12-cell layout, so January is cell 0 and December is cell 11.
 3. **Read the field back** and compare against what you intended:
 
@@ -309,12 +309,12 @@ that stack:
 
 | Limit | Constrains | Failure mode |
 |---|---|---|
-| 12 months | period length | Refuses to search — loud, you notice |
+| 12 months | period length | Refuses to search no loud, you notice |
 | 30,000 records | result volume | Searches anyway and **silently truncates the export** |
 
 A period that fits inside 12 months says nothing about whether the result fits
 inside 30,000 records. Ask for the full period first and split only when Softrade
-actually complains — see "Plan wide, narrow only when Softrade complains" in
+actually complains, see "Plan wide, narrow only when Softrade complains" in
 `SKILL.md`.
 
 ## The Importador field
@@ -341,7 +341,7 @@ Marca works the same way. NCM-SIM is a chips input.
 
 Typing a code into NCM-SIM and pressing Enter produces **two** chips: the real one
 and an empty one. The empty chip is nearly invisible in the UI and it **breaks the
-search** — a real run lost its first query this way, and the failure looks like the
+search**: a real run lost its first query this way, and the failure looks like the
 filter simply not matching rather than like a malformed input.
 
 Softrade appears to commit the chip as you type and again on Enter. Either way,
@@ -509,7 +509,7 @@ const y = (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2;
    evidence that exists. Softrade moves its data over a WebSocket, so there is no
    HTTP request to watch, and the screen says "descargando" whether or not a file
    was ever produced. List the download directory and confirm a **new** file
-   appeared — compare against the listing you took before clicking, since an older
+   appeared, compare against the listing you took before clicking, since an older
    export with a similar name is not proof of anything.
 5. Only after a new file exists, rename it and inspect it.
 

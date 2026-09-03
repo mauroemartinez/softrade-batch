@@ -25,50 +25,53 @@ volvés con cero filas. Avisale al usuario **antes** de descargar, no después.
 Importaciones salvo donde se aclare. `Prov.` es la contraparte extranjera
 (`Proveedor` / `Shipper`): la columna que contesta *a quién le compra*.
 
+En las celdas: **✅** la columna se vio en un archivo real, **⚠️** está pero con
+alguna salvedad, **no** no existe en ese reporte.
+
 | País | Reporte | Vitalidad | Último dato | Cols | FOB | CIF | Importador | Prov. | Incoterm | Marca |
 |---|---|---|---|---|:--:|:--:|:--:|:--:|:--:|:--:|
 | **EC** | importaciones | Viva | 23/08/2026 | 48 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **CR** | importaciones | Viva | 16/08/2026 | 48 | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **CL** | importaciones | Viva | 30/06/2026 | 40 | ✅ | ✅ | ✅ | — | ✅ | ✅ |
-| **PE** | importaciones | Viva | 22/08/2026 | 31 | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **BO** | importaciones | Viva | 31/07/2026 | 25 | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| **CO** | importaciones | Viva | 31/05/2026 | 45 | ✅ | ✅ | ✅ | ✅ | — | — |
-| **PY** | importaciones | Viva | 31/07/2026 | 42 | ✅ | ✅ | ⚠️ | ⚠️ | — | — |
-| **AR** | impo detalladas | Viva | 31/07/2026 | 36 | ✅ | ✅ | ✅ | — | ⚠️ | ✅ |
-| **UY** | importaciones | Viva | 01/09/2026 | 35 | ✅ | ⚠️ | ✅ | — | — | — |
-| **PA** | importaciones | Viva | 20/08/2026 | 30 | ✅ | ✅ | ✅ | ✅ | — | — |
-| **NI** | impo detalladas | Viva | 31/07/2026 | 27 | ✅ | ✅ | ✅ | ✅ | — | — |
-| **DO** | impo detalladas | Viva | 31/07/2026 | 27 | ✅ | ✅ | ✅ | ✅ | — | — |
-| **BR** | importaciones | Viva | al día | 12 | ✅ | — | — | — | — | — |
-| **HN** | importaciones | Rezagada | 31/03/2026 | 8 | — | ✅ | — | — | — | — |
-| **PR** | importaciones | Rezagada | 31/07/2025 | 11 | — | ✅ | — | — | — | — |
-| **SV** | importaciones | Rezagada | 30/06/2025 | 8 | — | ✅ | — | — | — | — |
-| **VE** | importaciones | Congelada | 31/08/2024 | 21 | — | ✅ | ✅ | — | — | — |
-| **BR** | cargas marít. ing. | Congelada | 30/11/2023 | 34 | — | — | ⚠️ | ⚠️ | — | — |
-| **GT** | impo detalladas | Congelada | 31/12/2021 | 17 | ✅ | ✅ | — | — | — | — |
-| **MX** | importaciones | Congelada | 30/11/2021 | 29 | — | ✅ | — | — | ⚠️ | — |
+| **CR** | importaciones | Viva | 16/08/2026 | 48 | ✅ | ✅ | ✅ | ✅ | no | ✅ |
+| **CL** | importaciones | Viva | 30/06/2026 | 40 | ✅ | ✅ | ✅ | no | ✅ | ✅ |
+| **PE** | importaciones | Viva | 22/08/2026 | 31 | ✅ | ✅ | ✅ | ✅ | no | ✅ |
+| **BO** | importaciones | Viva | 31/07/2026 | 25 | ✅ | ✅ | ✅ | ✅ | ✅ | no |
+| **CO** | importaciones | Viva | 31/05/2026 | 45 | ✅ | ✅ | ✅ | ✅ | no | no |
+| **PY** | importaciones | Viva | 31/07/2026 | 42 | ✅ | ✅ | ⚠️ | ⚠️ | no | no |
+| **AR** | impo detalladas | Viva | 31/07/2026 | 36 | ✅ | ✅ | ✅ | no | ⚠️ | ✅ |
+| **UY** | importaciones | Viva | 01/09/2026 | 35 | ✅ | ⚠️ | ✅ | no | no | no |
+| **PA** | importaciones | Viva | 20/08/2026 | 30 | ✅ | ✅ | ✅ | ✅ | no | no |
+| **NI** | impo detalladas | Viva | 31/07/2026 | 27 | ✅ | ✅ | ✅ | ✅ | no | no |
+| **DO** | impo detalladas | Viva | 31/07/2026 | 27 | ✅ | ✅ | ✅ | ✅ | no | no |
+| **BR** | importaciones | Viva | al día | 12 | ✅ | no | no | no | no | no |
+| **HN** | importaciones | Rezagada | 31/03/2026 | 8 | no | ✅ | no | no | no | no |
+| **PR** | importaciones | Rezagada | 31/07/2025 | 11 | no | ✅ | no | no | no | no |
+| **SV** | importaciones | Rezagada | 30/06/2025 | 8 | no | ✅ | no | no | no | no |
+| **VE** | importaciones | Congelada | 31/08/2024 | 21 | no | ✅ | ✅ | no | no | no |
+| **BR** | cargas marít. ing. | Congelada | 30/11/2023 | 34 | no | no | ⚠️ | ⚠️ | no | no |
+| **GT** | impo detalladas | Congelada | 31/12/2021 | 17 | ✅ | ✅ | no | no | no | no |
+| **MX** | importaciones | Congelada | 30/11/2021 | 29 | no | ✅ | no | no | ⚠️ | no |
 
 ### Lado exportador
 
 | País | Reporte | Vitalidad | Último dato | Cols | FOB | CIF | Exportador | Comprador | Incoterm | Marca |
 |---|---|---|---|---|:--:|:--:|:--:|:--:|:--:|:--:|
-| **AR** | exportaciones | Viva | 31/07/2026 | 9 | ✅ | — | ❌ | — | — | — |
-| **AR** | expo detalladas | Viva | 31/07/2026 | 31 | ✅ | — | ⚠️ | — | ⚠️ | ✅ |
+| **AR** | exportaciones | Viva | 31/07/2026 | 9 | ✅ | no | ❌ | no | no | no |
+| **AR** | expo detalladas | Viva | 31/07/2026 | 31 | ✅ | no | ⚠️ | no | ⚠️ | ✅ |
 
-**AR Exportaciones no tiene columna `Exportador`, ni vacía ni nada — no existe.** La variante Detalladas sí la trae, pero con `No disponible` en el 100% de las filas. Las dos son inútiles para atribuir a una empresa; la diferencia es que la Detallada parece que podría haber servido.
+**AR Exportaciones no tiene columna `Exportador`, ni vacía ni nada, no existe.** La variante Detalladas sí la trae, pero con `No disponible` en el 100% de las filas. Las dos son inútiles para atribuir a una empresa; la diferencia es que la Detallada parece que podría haber servido.
 
 ### Las ⚠️ , una por una
 
-- **PY Importador / Proveedor** — las columnas se llaman `Probable Importador` y
+- **PY Importador / Proveedor**: las columnas se llaman `Probable Importador` y
   `Probable Proveedor`. Son **inferidas, no declaradas**. Esa palabra tiene que
   llegarle al usuario cada vez que se entrega data paraguaya.
-- **AR Incoterm** — no existe una columna `Incoterm`, pero `Condición de Venta`
+- **AR Incoterm**: no existe una columna `Incoterm`, pero `Condición de Venta`
   cumple la misma función (FOB, CIF, CFR...).
-- **MX Incoterm** — igual que Argentina, la columna es `Condición de Venta`.
-- **UY CIF** — no trae CIF. Trae `U$S VNA` (Valor en Aduana), que es parecido pero
+- **MX Incoterm**: igual que Argentina, la columna es `Condición de Venta`.
+- **UY CIF**: no trae CIF. Trae `U$S VNA` (Valor en Aduana), que es parecido pero
   no idéntico. Sí trae `U$S FOB`, `Flete` y `Seguro`, así que el CIF se puede
   reconstruir sumando.
-- **BR Cargas: Importador / Proveedor** — las columnas son `Consignatario` y
+- **BR Cargas: Importador / Proveedor**: las columnas son `Consignatario` y
   `Shipper`, propias del manifiesto de embarque, no de la declaración aduanera. Es
   la contraparte real, pero el nombre no coincide y además **trae dirección, email
   y teléfono de ambos**, que ningún otro reporte da.

@@ -343,7 +343,7 @@ Si tu consulta depende del Incoterm, esos cinco países son toda tu lista.
 
 ### FOB y CIF no vienen siempre juntos
 
-Los reportes chicos —Honduras, Puerto Rico, El Salvador, de 8 a 11 columnas— traen **solo CIF**. No podés separar mercadería de flete y seguro.
+Los reportes chicos (Honduras, Puerto Rico, El Salvador, de 8 a 11 columnas) traen **solo CIF**. No podés separar mercadería de flete y seguro.
 
 Brasil Importaciones es el caso inverso: trae FOB y no CIF. Y Uruguay no trae ninguno de los dos con ese nombre, trae `U$S VNA` (Valor en Aduana), aunque como sí da FOB, flete y seguro por separado, el CIF se puede reconstruir sumando.
 
@@ -360,22 +360,22 @@ Las 20 bases medidas hasta ahora, ordenadas por qué tan completas son:
 | País | FOB | CIF | Importador | Proveedor | Incoterm | Marca |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|
 | Ecuador | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Costa Rica | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| Chile | ✅ | ✅ | ✅ | — | ✅ | ✅ |
-| Perú | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| Bolivia | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Argentina *(detalladas)* | ✅ | ✅ | ✅ | — | ⚠️ | ✅ |
-| Colombia | ✅ | ✅ | ✅ | ✅ | — | — |
-| Paraguay | ✅ | ✅ | ⚠️ | ⚠️ | — | — |
-| Panamá | ✅ | ✅ | ✅ | ✅ | — | — |
-| Nicaragua *(detalladas)* | ✅ | ✅ | ✅ | ✅ | — | — |
-| Rep. Dominicana *(detalladas)* | ✅ | ✅ | ✅ | ✅ | — | — |
-| Uruguay | ✅ | ⚠️ | ✅ | — | — | — |
-| Guatemala *(detalladas)* | ✅ | ✅ | — | — | — | — |
-| Venezuela | — | ✅ | ✅ | — | — | — |
-| México | — | ✅ | — | — | ⚠️ | — |
-| Brasil | ✅ | — | — | — | — | — |
-| Honduras · Puerto Rico · El Salvador | — | ✅ | — | — | — | — |
+| Costa Rica | ✅ | ✅ | ✅ | ✅ | no | ✅ |
+| Chile | ✅ | ✅ | ✅ | no | ✅ | ✅ |
+| Perú | ✅ | ✅ | ✅ | ✅ | no | ✅ |
+| Bolivia | ✅ | ✅ | ✅ | ✅ | ✅ | no |
+| Argentina *(detalladas)* | ✅ | ✅ | ✅ | no | ⚠️ | ✅ |
+| Colombia | ✅ | ✅ | ✅ | ✅ | no | no |
+| Paraguay | ✅ | ✅ | ⚠️ | ⚠️ | no | no |
+| Panamá | ✅ | ✅ | ✅ | ✅ | no | no |
+| Nicaragua *(detalladas)* | ✅ | ✅ | ✅ | ✅ | no | no |
+| Rep. Dominicana *(detalladas)* | ✅ | ✅ | ✅ | ✅ | no | no |
+| Uruguay | ✅ | ⚠️ | ✅ | no | no | no |
+| Guatemala *(detalladas)* | ✅ | ✅ | no | no | no | no |
+| Venezuela | no | ✅ | ✅ | no | no | no |
+| México | no | ✅ | no | no | ⚠️ | no |
+| Brasil | ✅ | no | no | no | no | no |
+| Honduras · Puerto Rico · El Salvador | no | ✅ | no | no | no | no |
 
 Las ⚠️ están explicadas una por una en la [matriz completa](skills/softrade-batch/references/fields-matrix.md): Paraguay dice "Probable", Argentina y México usan `Condición de Venta`, y Uruguay usa `VNA` en vez de CIF.
 
@@ -439,7 +439,7 @@ Varias columnas traen el texto literal `No disponible` en vez de venir vacías. 
 
 ### ¿Funciona en ChatGPT?
 
-**No sola, pero sí a mano.** No se instala como skill —ese formato lo entiende Claude Code— pero el contenido es markdown común: pegándole [`SKILL.md`](skills/softrade-batch/SKILL.md) y los archivos de [`references/`](skills/softrade-batch/references/) como contexto, funciona. Está probado.
+**No sola, pero sí a mano.** No se instala como skill, porque ese formato lo entiende Claude Code, pero el contenido es markdown común: pegándole [`SKILL.md`](skills/softrade-batch/SKILL.md) y los archivos de [`references/`](skills/softrade-batch/references/) como contexto, funciona. Está probado.
 
 La diferencia es que la instalación automática y la memoria entre sesiones las perdés: se los tenés que pegar cada vez, y la parte de manejar el navegador depende de que la herramienta que uses pueda hacerlo.
 
@@ -484,7 +484,7 @@ Los 20 medidos son las importaciones de los 19 países latinoamericanos más Car
 
 Argentina además está verificada punta a punta en cuatro reportes: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
 
-**Lo más grande que falta:** todo el lado exportador salvo Argentina, los 17 países de Asia y África que sí nombran empresas, y **8 de las 14 familias de reporte que nunca se abrieron** — Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
+**Lo más grande que falta:** todo el lado exportador salvo Argentina, los 17 países de Asia y África que sí nombran empresas, y **8 de las 14 familias de reporte que nunca se abrieron**: Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
 
 El orden para completarlo, con el país más barato elegido para cada familia, está en [`coverage.md`](skills/softrade-batch/references/coverage.md). El flujo es igual en todos, así que extenderlo es sobre todo cuestión de usarlo y documentar.
 
