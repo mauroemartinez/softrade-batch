@@ -191,7 +191,7 @@ Todos estos funcionan escritos así, en castellano normal:
 | Lo que escribís | Lo que hace |
 |---|---|
 | `las impo de MI EMPRESA S.A. de este año` | Una consulta, un archivo |
-| `importaciones de Brasil de camarones 2024 y 2025` | Parte en tramos y baja varios archivos |
+| `importaciones de Brasil de camarones 2024 y 2025` | Dos años no entran en una consulta: parte en tramos |
 | `exportaciones de Chile a China de los últimos 3 años` | Arma la corrida completa y te avisa cuántos archivos son |
 | `seguí la corrida de Softrade` | Retoma una corrida que se cortó |
 | `cómo viene la corrida?` | Te dice cuántos van y cuántos faltan |
@@ -319,13 +319,30 @@ Si tipeás `01/2026` en el campo de período, el campo **muestra** 01/2026 pero 
 
 **Siempre usá el calendarito**, y después verificá contra el panel de la izquierda, que es el único lugar que dice qué período se consultó de verdad.
 
-### 2. Una fila no es una operación
+### 2. El período no puede pasar de 12 meses
+
+Softrade **no deja consultar más de 12 meses en una sola búsqueda**. Si necesitás tres años, son tres consultas como mínimo, no una.
+
+Esto ya lo tiene en cuenta la planificación: al armar la corrida, cualquier rango más largo se parte solo en tramos de hasta 12 meses.
+
+Ojo con confundir los dos topes, porque son cosas distintas y se acumulan:
+
+| Tope | Qué limita | Qué pasa si te lo pasás |
+|---|---|---|
+| **12 meses** | el largo del período | No te deja buscar |
+| **30.000 registros** | el volumen de la respuesta | Te deja buscar y **te devuelve el archivo cortado** |
+
+Que el período entre en 12 meses **no significa que el resultado entre completo**. Un mes de un país grande ya llegó a 25.162 registros.
+
+**Igual no parte en meses por las dudas.** Pide el período entero primero, y solo si Softrade se queja lo divide. Al revés sería peor: una consulta de una empresa puntual durante todo un año suelen ser un puñado de operaciones, y partirla de entrada te dejaría doce descargas de las cuales once vienen vacías.
+
+### 3. Una fila no es una operación
 
 Cada declaración se abre en **una fila por ítem**. En los archivos que medimos, el promedio va de 2 a 6,5 filas por operación ([ver el diagrama](#qué-problema-resuelve)).
 
 Si contás filas para decir "importó 500 veces", el número está inflado. Hay que agrupar por `Identificador`.
 
-### 3. El Excel trae mucho más que la pantalla
+### 4. El Excel trae mucho más que la pantalla
 
 La grilla te muestra 12 columnas. El Excel de importaciones detalladas trae **36**. Lo que solo está en el archivo:
 
@@ -335,15 +352,15 @@ La grilla te muestra 12 columnas. El Excel de importaciones detalladas trae **36
 
 Nunca saques conclusiones mirando la pantalla.
 
-### 4. "No disponible" no es una celda vacía
+### 5. "No disponible" no es una celda vacía
 
 Varias columnas traen el texto literal `No disponible` en vez de venir vacías. Si filtrás por celdas vacías en Excel, **no las vas a agarrar**.
 
-### 5. Hay columnas repetidas
+### 6. Hay columnas repetidas
 
 `Item` y `Cantidad` aparecen **dos veces cada una** en el mismo archivo. La segunda pertenece al sub-registro de marca y no siempre coincide con la primera. Si tu herramienta las junta por nombre, vas a perder una.
 
-### 6. Softrade no te muestra cuánto consumiste
+### 7. Softrade no te muestra cuánto consumiste
 
 La mayoría de las cuentas tienen un tope mensual de filas (habitualmente 200.000 por mes calendario). **La aplicación no muestra el consumo en ningún lado**: no hay contador, ni aviso, ni pantalla de uso.
 
