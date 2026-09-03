@@ -73,15 +73,28 @@ Rules:
   how the user says it. Search the entity filter first and show the user the
   candidates. Picking the wrong one silently returns a plausible, wrong dataset,
   which is worse than returning nothing.
-- **Check the request is even answerable before planning.** Consult
-  `references/entities-latam.md` first. It records, per country and per direction,
-  whether the form can filter by company at all, and how current the data is. Six
-  Latin American countries name nobody on either side. Argentina names importers
-  but not exporters. Paraguay's names are labelled *Probable*, meaning inferred,
-  and that word must reach the user. Brasil Detalladas, Mexico and Guatemala
-  Detalladas are frozen in 2021, so any request for recent data there returns
-  nothing and looks like a filter mistake. Say all of this before planning, not
-  after downloading.
+- **Check the request is even answerable before planning.** Run
+  `scripts/preflight.py` first: it reads `references/catalog.json` and returns a
+  verdict without opening anything.
+
+  ```bash
+  python scripts/preflight.py --country ar --report "impo detalladas" \
+      --by-company --from 2026-01 --to 2026-07
+  ```
+
+  It exits `0` OK, `1` WARN (usable with caveats), `2` IMPOSSIBLE (the report does
+  not exist, or cannot answer a by-company question, or the whole period is past
+  the data cutoff). Its `messages_es` lines are written to be relayed to the user
+  verbatim. This is the fast path; the reference files below are the narrative
+  behind each verdict, for when you need the detail.
+
+  What it catches, all of which otherwise look like a filter mistake after
+  downloading: six Latin American countries name nobody on either side; Argentina
+  names importers but not exporters; Paraguay's names are *Probable*, meaning
+  inferred, and that word must reach the user; Brasil Detalladas, Mexico and
+  Guatemala Detalladas are frozen in 2021. `plan_run.py` runs the same check and
+  refuses to build a manifest for an impossible run, so a plan that survives is a
+  plan that can be executed.
 - **China, Japan, India, Taiwan, Korea, Thailand, Israel, Australia, New Zealand
   and all of Europe except Ukraine name nobody.** See `references/entities-world.md`.
   Roughly, the wealthier the country the less it publishes, which is the opposite of
@@ -187,12 +200,17 @@ row count instead of guessing.
 
 | Question | File |
 |---|---|
+| Is this country/report/period even answerable? (machine-readable, one call) | **`scripts/preflight.py`** over `references/catalog.json` |
 | Does this report have FOB / CIF / Incoterm / Marca? Is the data still alive? | **`references/fields-matrix.md`** |
 | Which reports does this country offer at all? | `references/catalog.md` |
 | Does it name the importer, the exporter, the counterparty? | `references/entities-latam.md`, `references/entities-world.md` |
 | What are the exact column names and the rows-per-record ratio? | `references/columns-latam.md`, `references/columns.md` |
 | Bill of lading reports (the only company data for BR, MX, US) | `references/cargas.md` |
 | What has been verified versus only cataloged? | `references/coverage.md` |
+
+`catalog.json` is generated from the markdown by `tools/build_catalog.py`; when a
+`references/*.md` fact changes, rebuild it. The markdown stays the source of truth
+and the human-readable narrative.
 
 **`fields-matrix.md` is the one to open first when the request names a field.**
 "Necesito el incoterm" narrows the possible countries to three, and knowing that
@@ -211,6 +229,8 @@ warn the user before downloading, not after.
 Repeat until `next` reports the run is complete:
 
 1. `python scripts/run_state.py next RUN_DIR` to get one job. One, not the list.
+   Add `--json` if you want the job as a structured object instead of prose;
+   `status --json` works the same way.
 2. **List the download directory now**, before touching anything. You need a
    "before" listing to prove later that a new file appeared.
 3. Set the filters in the browser for that job, per `references/site-flow.md`.

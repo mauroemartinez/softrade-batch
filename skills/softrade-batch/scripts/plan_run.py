@@ -28,6 +28,14 @@ import os
 import sys
 from datetime import date
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import _catalog
+    import preflight as _preflight
+except ImportError:  # scripts moved apart; validation just gets skipped
+    _catalog = None
+    _preflight = None
+
 MANIFEST_NAME = "manifest.json"
 
 
@@ -117,17 +125,93 @@ def build_jobs(countries, reports, chunks, filters=None):
     return jobs
 
 
+def _first_filter_name(filters):
+    for name in ("importador", "exportador", "proveedor"):
+        if filters.get(name):
+            return name
+    return None
+
+
+def validate(countries, reports, filters, date_from, date_to, skip=False):
+    """Check every country/report against catalog.json before a manifest is built.
+
+    Returns (canonical_countries, canonical_reports, catalog_version, warnings).
+    `warnings` is the deduplicated list of preflight caveats (frozen bases,
+    inferred names, euros/FOB, ...) so `main` can persist them in the manifest:
+    a run resumed in a fresh chat then has the caveats to relay without rerunning
+    preflight. Exits non-zero with a Spanish explanation if any combination is
+    impossible; warnings are surfaced, not fatal.
+    """
+    if skip or _catalog is None:
+        if not skip:
+            print("aviso: catalog.json no disponible, salteo la validación", file=sys.stderr)
+        return [c.upper() for c in countries], reports, None, []
+    try:
+        catalog = _catalog.load()
+    except _catalog.CatalogError as ex:
+        print("aviso: %s -- salteo la validación" % ex, file=sys.stderr)
+        return [c.upper() for c in countries], reports, None, []
+
+    by_company = _first_filter_name(filters)
+    want_counterparty = bool(filters.get("proveedor"))
+    canon_countries, canon_reports, problems, warns = [], [], [], []
+
+    for raw_c in countries:
+        for raw_r in reports:
+            try:
+                cc, rid, e = _catalog.entry(catalog, raw_c, raw_r)
+            except _catalog.CatalogError as ex:
+                problems.append(str(ex))
+                continue
+            if cc not in canon_countries:
+                canon_countries.append(cc)
+            if rid not in canon_reports:
+                canon_reports.append(rid)
+
+            res = _preflight.evaluate(catalog, cc, rid, bool(by_company),
+                                      date_from, date_to)
+            tag = "%s/%s" % (cc, rid)
+            if res["verdict"] == "IMPOSSIBLE":
+                problems += ["[%s] %s" % (tag, m) for m in res["messages_es"]]
+            elif res["verdict"] == "WARN":
+                for m in res["messages_es"]:
+                    line = "[%s] %s" % (tag, m)
+                    if line not in warns:
+                        warns.append(line)
+
+            # a --proveedor filter needs the report to actually name the counterparty
+            if want_counterparty and not (e["names"]["counterparty"] and
+                                          e["names"]["counterparty"] != "unknown"):
+                problems.append("[%s] pediste filtrar por --proveedor pero este "
+                                "reporte no nombra a la contraparte extranjera" % tag)
+
+    for w in warns:
+        print("  aviso  %s" % w, file=sys.stderr)
+    if problems:
+        print("\nplan_run: la corrida no se puede planificar así:\n", file=sys.stderr)
+        for p in problems:
+            print("  - %s" % p, file=sys.stderr)
+        print("\nCorregí el pedido (o pasá --skip-preflight si sabés lo que hacés).",
+              file=sys.stderr)
+        sys.exit(2)
+
+    return canon_countries, canon_reports, catalog["meta"]["captured"], warns
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, help="run directory; manifest.json is written inside it")
     ap.add_argument("--country", action="append", required=True, help="repeatable country code, e.g. ar")
-    ap.add_argument("--report", action="append", required=True, help="repeatable report id, e.g. imports_detailed")
+    ap.add_argument("--report", action="append", required=True,
+                    help="repeatable report id or free text, e.g. importDetalladas / 'impo detalladas'")
     ap.add_argument("--from", dest="date_from", required=True, help="first month, YYYY-MM")
     ap.add_argument("--to", dest="date_to", required=True, help="last month, YYYY-MM")
     ap.add_argument("--max-months", type=int, default=12,
                     help="max months per job (Softrade refuses queries over 12; leave at 12 "
                          "and split later with run_state.py split, only if a query truncates)")
     ap.add_argument("--label", default=None, help="free-text label for this run")
+    ap.add_argument("--skip-preflight", action="store_true",
+                    help="do not validate country/report/period against catalog.json")
 
     f = ap.add_argument_group(
         "filters",
@@ -152,8 +236,12 @@ def main(argv=None):
         ("pais_origen", args.pais_origen), ("marca", args.marca),
     ) if v}
 
+    countries, reports, catalog_version, warnings = validate(
+        args.country, args.report, filters, args.date_from, args.date_to,
+        skip=args.skip_preflight)
+
     chunks = split_range(month_floor(args.date_from), month_floor(args.date_to), args.max_months)
-    fresh = build_jobs(args.country, args.report, chunks, filters)
+    fresh = build_jobs(countries, reports, chunks, filters)
 
     os.makedirs(args.out, exist_ok=True)
     path = os.path.join(args.out, MANIFEST_NAME)
@@ -164,6 +252,12 @@ def main(argv=None):
         existing = {job_key(j) for j in manifest["jobs"]}
         added = [j for j in fresh if job_key(j) not in existing]
         manifest["jobs"].extend(added)
+        # keep the caveats current with the widened run
+        merged = list(manifest.get("preflight") or [])
+        for w in warnings:
+            if w not in merged:
+                merged.append(w)
+        manifest["preflight"] = merged
         verb = "extended"
         count = len(added)
     else:
@@ -173,6 +267,8 @@ def main(argv=None):
             "created_at": date.today().isoformat(),
             "download_dir": os.path.abspath(os.path.join(args.out, "downloads")),
             "max_months": args.max_months,
+            "catalog_version": catalog_version,
+            "preflight": warnings,
             "jobs": fresh,
         }
         verb = "created"

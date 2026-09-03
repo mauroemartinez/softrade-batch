@@ -4,8 +4,9 @@
 Every command prints a few lines at most. That is the point: the agent driving a
 long batch must never hold the whole manifest in context, only the next job.
 
-  python run_state.py next   RUN_DIR
-  python run_state.py status RUN_DIR
+  python run_state.py next   RUN_DIR            [--json]
+  python run_state.py status RUN_DIR            [--json]
+  python run_state.py check  RUN_DIR            (static integrity check vs catalog.json)
   python run_state.py done   RUN_DIR --job 7 --file arg_imports_2024.xlsx [--rows 15230] [--records 2]
   python run_state.py fail   RUN_DIR --job 7 --note "filtro de pais no cargo"
   python run_state.py skip   RUN_DIR --job 7 --note "sin datos para el periodo"
@@ -19,8 +20,15 @@ entered manually is a row count that can be wrong.
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime
+
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 MANIFEST_NAME = "manifest.json"
 TERMINAL = {"done", "skipped", "split"}
@@ -47,12 +55,26 @@ def pick(manifest, index):
     return jobs[index]
 
 
-def cmd_next(manifest, _args):
+def cmd_next(manifest, args):
     # Pending first, failed only once nothing pending is left. Handing a failed
     # job straight back means a run that hit an expired session retries the same
     # broken job forever instead of getting on with the work that can succeed.
     ordered = [(i, j) for i, j in enumerate(manifest["jobs"]) if j["status"] == "pending"]
     ordered += [(i, j) for i, j in enumerate(manifest["jobs"]) if j["status"] == "failed"]
+
+    if getattr(args, "json", False):
+        if not ordered:
+            print(json.dumps({"done": True}, ensure_ascii=False))
+            return 0
+        i, job = ordered[0]
+        payload = dict(job)
+        payload["index"] = i
+        payload["download_dir"] = manifest["download_dir"]
+        payload["catalog_version"] = manifest.get("catalog_version")
+        payload["preflight"] = manifest.get("preflight") or []
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
     for i, job in ordered:
         print("job %d" % i)
         print("  country    %s" % job["country"])
@@ -80,12 +102,33 @@ def cmd_next(manifest, _args):
     return 0
 
 
-def cmd_status(manifest, _args):
+def cmd_status(manifest, args):
     counts = {}
     for job in manifest["jobs"]:
         counts[job["status"]] = counts.get(job["status"], 0) + 1
     total = len(manifest["jobs"])
     done = counts.get("done", 0)
+    rows, records, unknown = run_totals(manifest)
+
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "label": manifest.get("label"),
+            "total": total,
+            "counts": counts,
+            "rows": rows,
+            "records": records,
+            "files_missing_record_count": unknown,
+            "rows_per_record": round(rows / records, 2) if records else None,
+            "catalog_version": manifest.get("catalog_version"),
+            "preflight": manifest.get("preflight") or [],
+            "failed": [
+                {"index": i, "country": j["country"], "report": j["report"],
+                 "date_from": j["date_from"], "date_to": j["date_to"], "note": j.get("note")}
+                for i, j in enumerate(manifest["jobs"]) if j["status"] == "failed"
+            ],
+        }, ensure_ascii=False, indent=2))
+        return 0
+
     print("%s: %d/%d done" % (manifest.get("label") or "run", done, total))
     for status in sorted(counts):
         print("  %-8s %d" % (status, counts[status]))
@@ -93,7 +136,6 @@ def cmd_status(manifest, _args):
     # Rows and records are different numbers and users conflate them constantly.
     # A run of 17 rows can be 2 customs operations. Always show both, and never
     # let a closing summary quote only one.
-    rows, records, unknown = run_totals(manifest)
     print("  rows     %s" % format(rows, ","))
     if unknown:
         print("  records  %s  (+%d file(s) with no record count)" % (format(records, ","), unknown))
@@ -105,6 +147,12 @@ def cmd_status(manifest, _args):
     failed = [(i, j) for i, j in enumerate(manifest["jobs"]) if j["status"] == "failed"]
     for i, job in failed[:10]:
         print("  ! job %d %s %s %s..%s: %s" % (i, job["country"], job["report"], job["date_from"], job["date_to"], job.get("note")))
+
+    caveats = manifest.get("preflight") or []
+    if caveats:
+        print("  preflight (relay these to the user):")
+        for c in caveats:
+            print("    - %s" % c)
     return 0
 
 
@@ -252,9 +300,99 @@ def cmd_reset(manifest, args):
     return 0
 
 
+_VALID_STATUS = {"pending", "done", "failed", "skipped", "split"}
+# date fields may hold a real date or a deferred-resolution placeholder that the
+# browser step turns into a concrete month (used by the coverage run)
+_DATE_PLACEHOLDERS = {"latest", "ultimo mes cargado", "último mes cargado",
+                      "ultimo mes cerrado", "último mes cerrado"}
+
+
+def _load_catalog():
+    here = os.path.dirname(os.path.abspath(__file__))
+    for cand in (os.path.join(here, "_catalog.py"),):
+        if os.path.exists(cand):
+            sys.path.insert(0, here)
+            try:
+                import _catalog
+                return _catalog.load()
+            except Exception:
+                return None
+    return None
+
+
+def cmd_check(manifest, args):
+    """Static integrity check of a manifest, before or after a run.
+
+    Catches the mistakes that a hand-built or machine-generated manifest tends to
+    have: a report id that is not canonical, a country the catalog does not know,
+    a `done` job with no file, a bad status. Read-only. Exits 1 if anything is
+    wrong so it can gate a review.
+    """
+    catalog = _load_catalog()
+    report_ids = set(catalog["report_types"]) if catalog else None
+    countries = catalog["countries"] if catalog else None
+
+    problems, warnings = [], []
+    jobs = manifest.get("jobs")
+    if not isinstance(jobs, list) or not jobs:
+        print("check: el manifiesto no tiene jobs")
+        return 1
+
+    for i, j in enumerate(jobs):
+        tag = "job %d" % i
+        for key in ("country", "report", "date_from", "date_to", "status"):
+            if key not in j:
+                problems.append("%s: falta el campo '%s'" % (tag, key))
+        st = j.get("status")
+        if st not in _VALID_STATUS:
+            problems.append("%s: status inválido %r" % (tag, st))
+        cc = str(j.get("country", "")).upper()
+        rid = j.get("report")
+        if report_ids is not None and rid not in report_ids:
+            problems.append("%s: report %r no es un id canónico (%s...)" % (
+                tag, rid, ", ".join(sorted(report_ids)[:4])))
+        elif countries is not None:
+            if cc not in countries:
+                problems.append("%s: país %r no está en catalog.json" % (tag, cc))
+            elif rid not in countries[cc]["reports"]:
+                problems.append("%s: %s no ofrece %r" % (tag, cc, rid))
+        for d in (j.get("date_from"), j.get("date_to")):
+            s = str(d or "")
+            if s.lower() in _DATE_PLACEHOLDERS:
+                continue
+            if not re.match(r"^\d{4}-\d{2}(-\d{2})?$", s):
+                warnings.append("%s: fecha %r no es YYYY-MM ni un placeholder conocido" % (tag, d))
+        if st == "done":
+            if not j.get("file"):
+                problems.append("%s: done pero sin 'file'" % tag)
+            if j.get("rows") is None:
+                warnings.append("%s: done sin conteo de filas (usá inspect_download.py --record)" % tag)
+        if int(j.get("attempts", 0) or 0) < 0:
+            problems.append("%s: attempts negativo" % tag)
+
+    cv = manifest.get("catalog_version")
+    if catalog and cv and cv != catalog["meta"]["captured"]:
+        warnings.append("catalog_version del manifiesto (%s) != catalog.json (%s)" % (
+            cv, catalog["meta"]["captured"]))
+    if catalog is None:
+        warnings.append("catalog.json no disponible: no validé país/reporte")
+
+    for w in warnings:
+        print("  aviso  %s" % w)
+    if problems:
+        print("\ncheck: %d problema(s):" % len(problems))
+        for p in problems:
+            print("  - %s" % p)
+        return 1
+    print("check: %d jobs, sin problemas%s" % (
+        len(jobs), " (%d avisos)" % len(warnings) if warnings else ""))
+    return 0
+
+
 COMMANDS = {
     "next": (cmd_next, False),
     "status": (cmd_status, False),
+    "check": (cmd_check, False),
     "done": (cmd_done, True),
     "fail": (cmd_fail, True),
     "skip": (cmd_skip, True),
@@ -273,6 +411,8 @@ def main(argv=None):
     ap.add_argument("--records", type=int, help="distinct customs operations in the file (not rows)")
     ap.add_argument("--max-months", type=int, help="months per sub-job for `split` (default 1)")
     ap.add_argument("--note", help="free-text note")
+    ap.add_argument("--json", action="store_true",
+                    help="machine-readable output for `next` and `status`")
     args = ap.parse_args(argv)
 
     handler, writes = COMMANDS[args.command]
