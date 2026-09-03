@@ -17,8 +17,41 @@ form; check it only after `inspect_download.py` has run against a real export.
    `No disponible`. **This is the layer that is mostly open.** Everything below
    tracks layer 3.
 
-Layer 3 needs a live browser session against Softrade (`site-flow.md`) plus quota.
+Layer 3 has two outputs, and a new measurement must land in both:
+`columns-latam.md` (or a new `columns-<region>.md`) for the full column list, and
+**`fields-matrix.md`** for the one-line answer on vitality and the key fields —
+FOB, CIF, Importador, Proveedor, Incoterm, Marca. The matrix is what gets consulted
+before promising a field to a user; the column list is what gets consulted while
+building the query. Twenty reports are in the matrix today.
+
+Layer 3 needs a live browser session against Softrade (`site-flow.md`).
 It cannot be done from the catalog alone.
+
+## How much precision the vitality check needs
+
+**Very little. Do not hunt for the exact cutoff month.**
+
+The only question a user ever asks is whether the data is usable *now*: is there
+something from last month, or is this one of the bases frozen five years ago? That
+is a yes/no, and one or two searches answer it.
+
+The cheap procedure, per report:
+
+0. **Read the pre-filled period.** Both Periodo fields arrive holding the newest
+   period the report offers, so the vitality answer is often visible before any
+   search at all: `05/2026` means current, `12/2021` means frozen. Verified on MX
+   Cargas Totales, which read `05/2026` matching its header exactly.
+1. Only if you need to confirm rows exist, search that period. Data? **Current, done.**
+2. Empty? Step back one month and search again. Data? **Current, done.**
+3. Still empty? Record it as **"sin datos recientes"** and move on. Do not binary
+   search backwards through the year to find where the data starts.
+
+Two searches, then a verdict. A report that has nothing in the last two months is
+not current, and *how* stale it is beyond that almost never changes what anyone
+does with it. Chasing the exact boundary costs many round trips and buys nothing.
+
+The one exception is when the user specifically asks for a historical period. Then
+you are testing that period, not the cutoff.
 
 ## Breadth before depth
 
@@ -66,7 +99,12 @@ Representatives are picked so one login session covers several boxes: **Ecuador*
 alone opens families 5 and 7, **Uruguay** opens 9 and 13, and **Brasil** opens 10
 next to the Cargas Marítimas layout already measured.
 
-- [ ] **F3 · Exportaciones (standard)** → AR. Cheapest box on the board: same
+- [x] **F3 · Exportaciones (standard)** → AR. **DONE 2026-09-03**, 9 columns, no
+      `Exportador` column at all. See `columns.md`.
+- [ ] **F3 second country** → EC attempted 2026-09-03; every search came back empty,
+      but a canary proved the session itself was broken, so nothing was learned.
+      Retry from scratch. See "A whole session can start returning empty results"
+      in `site-flow.md` and run the canary FIRST. Cheapest box on the board: same
       country, same session mechanics, already documented in `site-flow.md`.
       Watch whether `Exportador` is `No disponible` here too, as it is in AR
       Exportaciones Detalladas.
@@ -212,11 +250,12 @@ One column pass each so the catalog is complete, done last.
    check, never the results grid.
 3. Keep each verification query **deliberately tiny** — one month, one NCM code if
    the form allows it. This pass is measuring column layouts, not gathering data,
-   and every row still burns the monthly quota.
+   so there is no reason to pull a big file.
 4. Run `inspect_download.py` on the file.
 5. Append the measured column list to `columns.md` (Argentina today, growing) or a
-   new `columns-<region>.md` following the format of `columns-latam.md`, and check
-   the box here.
+   new `columns-<region>.md` following the format of `columns-latam.md`, **add the
+   row to `fields-matrix.md`**, and check the box here. A measurement that is not
+   in the matrix is a measurement nobody will find.
 6. If a report behaves differently from what `site-flow.md` documents — a filter in
    a different place, a Periodo field that is free text instead of a calendar,
    Puerto appearing where it did not in Argentina — add a note to `site-flow.md`

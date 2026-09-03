@@ -113,8 +113,8 @@ def record_outcome(run_dir, index, status, path, rows=None, records=None, note=N
     """Write this file's real numbers into the manifest.
 
     The point of this function is that nobody retypes a row count. A count typed
-    by hand is a count that can be wrong, and a wrong one corrupts both the
-    closing summary and the quota tracking, silently.
+    by hand is a count that can be wrong, and a wrong one corrupts the closing
+    summary silently.
     """
     from datetime import datetime
 

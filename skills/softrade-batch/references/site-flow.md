@@ -67,6 +67,174 @@ be used as entry points.
 **Do not navigate rapidly.** Chaining several navigations in one batch left the SPA
 in a blank blue broken state that needed a reload. Let each page settle.
 
+## Verified live 2026-09-03 on AR Exportaciones and AR Otras Operaciones
+
+A second live pass corrected several things below. Where this section contradicts
+an older one, this section is what was actually observed.
+
+### The period already defaults to the last loaded month
+
+Both Periodo fields arrive pre-filled with the newest month Softrade holds
+(`07/2026` on Argentina). **A single-month query on the newest month therefore
+needs no calendar interaction at all** — read the two fields back, confirm, and
+search. That removes the most fragile step in the whole flow from the majority of
+coverage-style queries. Only reach for the widget when you need an older period.
+
+### JS .click() does not fire Buscar
+
+This is the one that wastes the most time, because it fails silently in both
+directions:
+
+| Control | JS `.click()` | Real coordinate click |
+|---|---|---|
+| Country flag | works | works |
+| Popover report item | works | works |
+| **Buscar** | **does nothing** | works |
+| Excel download `ion-img` | works | works |
+
+A JS click on Buscar returns without error and leaves you on the form, which looks
+exactly like a search that returned nothing. Always click Buscar by coordinate,
+taking the position from `getBoundingClientRect()` rather than from a screenshot:
+
+```js
+const b = [...document.querySelectorAll('ion-button,button')]
+  .find(e => /^Buscar$/i.test((e.innerText||'').trim()));
+const r = b.getBoundingClientRect();   // then click (left+width/2, top+height/2)
+```
+
+### Zero results looks identical to a search that never ran
+
+When a query matches nothing, Softrade **stays on `/home/formulario/...`, shows no
+message, and raises no alert**. There is no "sin resultados" anywhere. So "still on
+the form" has three possible meanings: the click missed, the query is still
+running, or the answer is genuinely empty.
+
+Tell them apart in this order:
+
+1. `document.querySelector('ion-loading,.loading-wrapper')` — still running.
+2. URL changed to `/home/detalle/...` — it worked.
+3. Neither, after the spinner is gone — either an empty result or a dead click.
+   Re-click Buscar by coordinate once. If it still does not move, treat it as
+   genuinely empty and `skip` the job.
+
+### NCM-SIM is a p-autoComplete in chip mode
+
+Not `p-chips`, which is why a `p-chips` selector finds nothing. The real structure
+is `p-auto-complete` > `.p-autocomplete-chip-item` > `p-chip`. On AR Exportaciones
+the same field is a **plain text input** with no chips at all, so check per report
+rather than assuming.
+
+A 6-digit code typed as `854442` is normalised by Softrade to `8544.42`.
+
+### Filters survive leaving the report, and Reset does not clear them
+
+Two separate traps that compound:
+
+- **Reset does not empty the chip fields.** The codes stay.
+- **Neither does navigating away and back** through the flag menu. Re-entering the
+  report shows the previous query's chips still loaded.
+
+In a batch run that means one tramo's filter silently contaminates the next, and
+the results look perfectly plausible. **Read the filter fields back before every
+search**, and clear chips explicitly by dispatching a click on their remove icon:
+
+```js
+const ac = [...document.querySelectorAll('p-auto-complete')]
+  .find(e => /8544/.test(e.innerText || ''));
+[...ac.querySelectorAll('[data-pc-section="removeicon"], .p-chip-remove-icon')]
+  .forEach(i => i.dispatchEvent(new MouseEvent('click', {bubbles: true})));
+```
+
+### The date widget is PrimeNG, not Ionic
+
+The Periodo control is a `p-datepicker` (`span.p-datepicker` wrapping the readonly
+input, with its own trigger button), not an `ion-datetime`. Any guidance written
+against Ionic selectors will not find it.
+
+### A whole session can start returning empty results, and it looks like missing data
+
+**This is the most important thing learned on 2026-09-03, and it invalidated four
+wrong conclusions before it was spotted.**
+
+In one session: the first search returned data and downloaded fine. Every search
+after it returned nothing — across three countries, five reports, filtered and
+unfiltered. The run ended by searching **AR Importaciones Detalladas, one month, no
+filters at all**, a query whose result is known to be 25,061 records. It returned
+nothing, with no message.
+
+That single result rules out every per-report explanation. Along the way these
+conclusions were drawn and are all **unsafe**:
+
+- "the pre-filled default month is empty"
+- "Ecuador has no recent export data"
+- "AR Otras Operaciones has no data for 07/2026"
+- "the account is not subscribed to Mexico"
+
+Each looked well-evidenced. All of them are equally explained by the session
+degrading after the first successful query.
+
+**Leading hypotheses, none confirmed:** the account's monthly row allowance is
+exhausted (Softrade shows consumption nowhere, so this is invisible), or the server
+throttles after a burst of queries.
+
+**What to do about it.** Before concluding that any report lacks data, run a
+**canary query**: a report and period known to return a large result — AR
+Importaciones Detalladas, one recent month, no filters, which should trigger
+`demasiado extensa` immediately. If the canary comes back empty, the session is
+broken and **every "sin datos" result since the last good download is worthless**.
+Stop, tell the user, and do not record any of it in the manifest as `skipped`.
+
+Run the canary at the start of a batch, and again after any unexpected empty
+result. It costs one query and it is the difference between documenting the
+database and documenting a broken session.
+
+### Reports whose default period returned nothing (2026-09-03, UNRELIABLE)
+
+Measured 2026-09-03 on Ecuador, whose header advertises `23/8/2026`:
+
+| Report | Period | Filter | Result |
+|---|---|---|---|
+| EC Importaciones | 08/2026 | NANDINA 8544 | **0 rows** |
+| EC Importaciones | 08/2026 | NANDINA 8544.42 | **0 rows** |
+| EC Exportaciones | 08/2026 | none at all | **0 rows** |
+| EC Exportaciones | 07/2026 | none at all | **0 rows** |
+| EC Exportaciones | 01/2026 | NANDINA 0803.90 | **0 rows** |
+| EC Importaciones | (an earlier month) | NANDINA 8544 | 3,391 rows, per `columns-latam.md` |
+
+**Treat this table as evidence of the broken session above, not as evidence about
+these databases.** It is kept only so the pattern is recognisable next time.
+
+What does still stand, independently: empty results are **silent**. Softrade stays
+on the form, shows no message and raises no alert, so "no data" and "the session is
+broken" and "the click missed" all look identical. That is why the canary matters.
+
+### Calendar coordinates do not transfer between forms
+
+The month grid is positioned relative to the field, and forms differ in height, so
+the pixel coordinates that hit "Jul" on one report land on nothing on the next.
+Re-derive them per form, and **always read the field back**: a failed calendar
+click is silent, and on a form where the default period is empty it looks exactly
+like a report with no data.
+
+This was hit live: coordinates taken from EC Exportaciones did nothing on EC
+Importaciones, and only the read-back revealed the fields still said `08/2026`.
+
+### The header cutoff is per country, not per report
+
+The blue header showed `31/7/2026` on Argentina, and AR Importaciones does hold
+July. **AR Otras Operaciones returned zero rows for 07/2026 with no filters at
+all.** The cutoff in the header is the country's newest data in general, and an
+individual report can lag far behind it.
+
+So an empty month is not proof of an empty database. Before recording "sin datos",
+try an older period on that specific report.
+
+### Download icons differ by report
+
+AR Exportaciones offers `excel_off.svg`, `mail_off.svg` and
+`excel_personalizado_off.svg`. There is no `report_off.svg` on this form, so match
+on `excel_off` rather than on position.
+
 ## The data cutoff tells you itself
 
 The blue header shows the last loaded date, e.g. `31/7/2026`, and the month picker
@@ -145,8 +313,9 @@ that stack:
 | 30,000 records | result volume | Searches anyway and **silently truncates the export** |
 
 A period that fits inside 12 months says nothing about whether the result fits
-inside 30,000 records. For high-volume country/report combinations, plan in months,
-not years — see the `--max-months 1` guidance in `SKILL.md`.
+inside 30,000 records. Ask for the full period first and split only when Softrade
+actually complains — see "Plan wide, narrow only when Softrade complains" in
+`SKILL.md`.
 
 ## The Importador field
 
@@ -414,10 +583,6 @@ So the practical rule is simpler than "detect truncation in the file":
 3. The record-count check in `inspect_download.py` stays as the backstop for files
    that do arrive.
 
-There is a silver lining for quota: a query that never produces a file most likely
-does not count downloaded rows against the monthly allowance. Do not rely on that,
-but do not panic about a handful of refused downloads either.
-
 ### A 4-digit heading is not small everywhere
 
 Sizing depends enormously on the country. Heading 8544 over one month:
@@ -477,17 +642,7 @@ month of one country pair already reached 25,162 records, which is 84% of the ca
 If a month still truncates, split further by NCM chapter, customs office or
 destination country, and record each slice as its own job in the manifest.
 
-## Quota
-
-Softrade accounts carry a monthly row allowance, commonly 200,000 rows per calendar
-month. **The application does not display consumption anywhere**: the account menu
-holds only the user id, Favoritos, Soporte Tecnico, language, Acerca de and Salir.
-There is no counter, no usage page, and no warning as the limit approaches.
-
-That makes quota the user's blind spot, and it is the manifest's job to cover it.
-Record the row count of every download, keep a running total per calendar month,
-and warn before a planned run would exceed what is left. A run that silently burns
-the month's allowance in one afternoon is a worse failure than a run that stops.
+## Estimating a period's size
 
 Estimating before downloading is unreliable, since the pager saturates. When a
 period's size is unknown, download one month first, then extrapolate from its

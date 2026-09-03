@@ -1,6 +1,6 @@
 ---
 name: softrade-batch
-description: Pull foreign-trade data out of Softrade (app.softrade.info) from a plain-language request such as "necesito las impo de mi empresa de este ano", resolving the company, country, report type and date range before touching the browser. Drives the user's own logged-in Chrome tab. Built for batches that are too long for one conversation: keeps a manifest.json on disk as the single source of truth so a run that dies halfway resumes from a fresh chat instead of restarting. Knows all 78 countries and which reports each one offers. Detects the silent truncation that hits any query over 30,000 customs records, and tracks the account's monthly row quota, which Softrade displays nowhere. Use whenever the user asks for imports or exports of a named company, asks to pull, export, resume or bulk-download Softrade data, mentions "importaciones detalladas", "exportaciones detalladas", a Softrade "consulta por parametros", says a previous Softrade run never finished, or wants trade data spanning more than one year or country.
+description: Pull foreign-trade data out of Softrade (app.softrade.info) from a plain-language request such as "necesito las impo de mi empresa de este ano", resolving the company, country, report type and date range before touching the browser. Drives the user's own logged-in Chrome tab. Built for batches that are too long for one conversation: keeps a manifest.json on disk as the single source of truth so a run that dies halfway resumes from a fresh chat instead of restarting. Knows all 78 countries and which reports each one offers. Detects the silent truncation that hits any query over 30,000 customs records. Use whenever the user asks for imports or exports of a named company, asks to pull, export, resume or bulk-download Softrade data, mentions "importaciones detalladas", "exportaciones detalladas", a Softrade "consulta por parametros", says a previous Softrade run never finished, or wants trade data spanning more than one year or country.
 ---
 
 # Softrade batch downloads
@@ -120,11 +120,28 @@ python scripts/plan_run.py --out RUN_DIR \
   --country ar --country br \
   --report imports_detailed \
   --from 2023-01 --to 2025-12 \
+  --importador "NOMBRE EXACTO S.A." \
   --label "research-q3"
 ```
 
 `RUN_DIR` should live with the user's project, not in a temp directory, since it has
 to outlive the session. Downloads go to `RUN_DIR/downloads/`.
+
+**Pass every filter to `plan_run.py`.** `--importador`, `--exportador`,
+`--proveedor`, `--ncm`, `--aduana`, `--pais-origen`, `--marca`. This is not
+bookkeeping, it is the difference between a resumable run and a broken one.
+
+Country, report and dates alone do not define a dataset. "Importaciones de
+Argentina en 2024" is a different file for every importer. If the company you spent
+Step 0 confirming lives only in the conversation, then the moment the chat is
+summarized the run has lost it, and the next `next` hands you a job you cannot
+reproduce. You would have to either ask the user again, which breaks the promise
+that a run resumes on its own, or guess, which silently mixes two different
+datasets across tramos of the same run.
+
+`next` prints the filters back on every job, and `split` copies them into the
+sub-jobs. If `next` says `filters (none: whole country/period)` on a job that was
+meant to be about one company, the manifest is wrong: fix it before downloading.
 
 **Softrade refuses any query longer than 12 months**, so a multi-year request is
 always several jobs. `plan_run.py` splits on `--max-months` (default 12) to keep
@@ -163,35 +180,31 @@ combine rather than one.
 Tell the user the job count before you start. Forty jobs is a multi-session run and
 they should know that going in.
 
-**Check quota before starting, and keep checking.** Softrade accounts carry a
-monthly row allowance, commonly 200,000 rows per calendar month, and the
-application shows consumption nowhere at all. The manifest is the only place it
-gets counted:
-
-```bash
-python scripts/run_state.py quota RUN_DIR [--quota 200000]
-```
-
-Run it **before planning a run** and again whenever the user asks how things are
-going. `run_state.py done` also prints a warning on its own once the month passes
-50% of the allowance, and a STOP once it passes 80%.
-
-**A STOP means stop.** Do not start another tramo. Tell the user how much is left
-and let them decide. Silently spending a month's allowance in one afternoon is a
-worse failure than a run that pauses.
-
 When a period's size is unknown, download one month and extrapolate from its real
 row count instead of guessing.
 
-See `references/catalog.md` for all 78 countries and exactly which reports each one
-offers, `references/entities-latam.md` for who is named and how current the data is across
-Latin America, and `references/columns-latam.md` for the measured column layout,
-row and record counts of every Latin American import report,
-`references/entities-world.md` for the same coverage question across Asia, Africa,
-Oceania and Europe, and `references/cargas.md` for the bill of lading reports,
-which are the only place Brasil, Mexico and the United States name companies. Check it before promising anything: only 8 countries have Detalladas data
-at all, several have imports but no exports, and report families such as Cargas,
-Zona Franca and Transitos exist in only a handful of countries.
+### Which reference answers which question
+
+| Question | File |
+|---|---|
+| Does this report have FOB / CIF / Incoterm / Marca? Is the data still alive? | **`references/fields-matrix.md`** |
+| Which reports does this country offer at all? | `references/catalog.md` |
+| Does it name the importer, the exporter, the counterparty? | `references/entities-latam.md`, `references/entities-world.md` |
+| What are the exact column names and the rows-per-record ratio? | `references/columns-latam.md`, `references/columns.md` |
+| Bill of lading reports (the only company data for BR, MX, US) | `references/cargas.md` |
+| What has been verified versus only cataloged? | `references/coverage.md` |
+
+**`fields-matrix.md` is the one to open first when the request names a field.**
+"Necesito el incoterm" narrows the possible countries to three, and knowing that
+before planning saves a download that was never going to carry the column.
+
+Check these before promising anything: only 8 countries have Detalladas data at
+all, several have imports but no exports, and report families such as Cargas, Zona
+Franca and Transitos exist in only a handful of countries.
+
+**Say it when a base is frozen.** Several are stuck in 2021 or 2024. Asking one of
+them for recent data returns zero rows and looks exactly like a filter mistake, so
+warn the user before downloading, not after.
 
 ## Step 2: the download loop
 
