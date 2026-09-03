@@ -90,6 +90,34 @@ Always use the widget:
 2. Click the year arrows until you are on the right year.
 3. Click the month.
 
+### Verify the field, do not trust the click
+
+This is the single most fragile step in the whole flow, and it fails in a way that
+looks like success. **Clicks on the calendar have been observed applying even
+though the browser tool reported a timeout**, so a reported failure is not evidence
+that nothing happened, and a reported success is not evidence that it did. Blind
+retries after a "timeout" therefore double-click months and land on the wrong one.
+
+Never retry on the tool's return value. Retry on the field's value:
+
+1. Open the picker.
+2. Pick the month **by index** rather than by hunting for its label — the grid is
+   a fixed 12-cell layout, so January is cell 0 and December is cell 11.
+3. **Read the field back** and compare against what you intended:
+
+```js
+document.querySelectorAll('input[readonly]')  // the Periodo inputs
+```
+
+4. Retry **only if the value did not change.** If it changed to the wrong month,
+   that is a different bug: fix it by picking again, not by repeating the click
+   that produced it.
+5. After at most two corrective attempts, stop and tell the user, rather than
+   thrashing the widget.
+
+Treat every calendar interaction as write-then-read. The read is not optional and
+it is not a screenshot.
+
 Then **verify against the results sidebar**, not against the form. After searching,
 the left panel shows the period the query actually used:
 
@@ -100,6 +128,25 @@ Importador NOMBRE DE LA EMPRESA S.A.
 
 That sidebar is the only trustworthy confirmation of what was queried. Check it
 before recording a job as done.
+
+## The 12-month ceiling on a single query
+
+**Softrade will not run a query spanning more than 12 months.** Three years is
+three searches minimum, never one. `plan_run.py` enforces this by splitting any
+longer range into chunks of at most `--max-months` (default 12), so a planned run
+never produces an illegal job.
+
+Do not confuse this with the 30,000-record truncation. They are independent limits
+that stack:
+
+| Limit | Constrains | Failure mode |
+|---|---|---|
+| 12 months | period length | Refuses to search — loud, you notice |
+| 30,000 records | result volume | Searches anyway and **silently truncates the export** |
+
+A period that fits inside 12 months says nothing about whether the result fits
+inside 30,000 records. For high-volume country/report combinations, plan in months,
+not years — see the `--max-months 1` guidance in `SKILL.md`.
 
 ## The Importador field
 
@@ -120,6 +167,28 @@ a different, entirely plausible dataset. There is no way to tell
 from the numbers afterwards that you picked wrong, so confirm before searching.
 
 Marca works the same way. NCM-SIM is a chips input.
+
+## NCM-SIM creates a phantom empty chip
+
+Typing a code into NCM-SIM and pressing Enter produces **two** chips: the real one
+and an empty one. The empty chip is nearly invisible in the UI and it **breaks the
+search** — a real run lost its first query this way, and the failure looks like the
+filter simply not matching rather than like a malformed input.
+
+Softrade appears to commit the chip as you type and again on Enter. Either way,
+never assume the field holds what you meant.
+
+**Count the chips before every search.** There must be exactly one non-empty chip
+per code you intended, and no empty ones:
+
+```js
+[...document.querySelectorAll('ion-chip')].map(c => c.innerText.trim())
+// ["6309", ""]  <- the second one is the phantom; remove it before searching
+```
+
+Delete any blank chip with its own X before firing Buscar. If the search returns
+nothing, check this first: an empty chip is a far more common cause than a genuinely
+empty period.
 
 ## Filters on the Consulta por Parametros form
 
@@ -234,7 +303,48 @@ The `_off` suffix is the idle sprite and swaps on hover, so match with a substri
 not the whole filename. Both Excel controls sit inside an `<app-descarga-excel>`
 element, which is another way to find them.
 
-A plain `.click()` on the `ion-img` works and does not need the tab focused.
+A plain `.click()` on the `ion-img` does not need the tab focused, but **it is not
+reliable on its own.** In real runs the selector was correct and the click still
+did nothing, repeatedly. The Descargas panel also renders its icons **partially
+clipped**, so the element's geometric centre can fall outside the visible area and
+a coordinate click aimed there hits nothing.
+
+Work through it in this order, and do not skip a step because the previous one
+reported success:
+
+1. **Confirm the panel is actually expanded.** Clicking the header toggles, so a
+   "click to expand" that ran twice has closed it again. Check that the icons are
+   in the DOM *and* have a non-zero box:
+
+```js
+[...document.querySelectorAll('ion-img.imgBotonDescarga')]
+  .map(e => { const r = e.getBoundingClientRect();
+              return {src: e.src.split('/').pop(), w: r.width, h: r.height, top: r.top}; })
+```
+
+2. **Try `.click()` on the element first.** It is the cheapest path and it often
+   works.
+3. **If no file appears, fall back to a coordinate click inside the visible part
+   of the icon.** Intersect the element's rect with the viewport and aim at the
+   centre of the intersection, not the centre of the element:
+
+```js
+const r = el.getBoundingClientRect();
+const x = (Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2;
+const y = (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2;
+```
+
+   Scroll the panel so the icon is fully visible before computing this, if it is
+   clipped by its own container rather than by the viewport.
+4. **Check the filesystem. Always.** This step is mandatory and it is the only
+   evidence that exists. Softrade moves its data over a WebSocket, so there is no
+   HTTP request to watch, and the screen says "descargando" whether or not a file
+   was ever produced. List the download directory and confirm a **new** file
+   appeared — compare against the listing you took before clicking, since an older
+   export with a similar name is not proof of anything.
+5. Only after a new file exists, rename it and inspect it.
+
+Never report a download as done on the strength of a click returning successfully.
 
 ## Downloaded file names
 

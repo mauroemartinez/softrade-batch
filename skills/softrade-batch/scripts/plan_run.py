@@ -14,6 +14,13 @@ Usage:
 
 Re-running against an existing manifest adds only the jobs that are missing;
 jobs already marked done are never touched.
+
+Plan wide, narrow later. `--max-months` defaults to 12 because that is Softrade's
+own ceiling, so a request that fits inside a year is ONE job and ONE consolidated
+Excel. Do not pre-split into months on a hunch: a narrow query over a full year is
+routinely a handful of operations, and twelve monthly jobs would mean twelve
+downloads, twelve renames and eleven empty files. When a query does come back
+truncated, split that job then, with `run_state.py split`.
 """
 import argparse
 import json
@@ -89,6 +96,7 @@ def build_jobs(countries, reports, chunks):
                         "status": "pending",
                         "file": None,
                         "rows": None,
+                        "records": None,
                         "attempts": 0,
                         "note": None,
                         "updated_at": None,
@@ -104,7 +112,9 @@ def main(argv=None):
     ap.add_argument("--report", action="append", required=True, help="repeatable report id, e.g. imports_detailed")
     ap.add_argument("--from", dest="date_from", required=True, help="first month, YYYY-MM")
     ap.add_argument("--to", dest="date_to", required=True, help="last month, YYYY-MM")
-    ap.add_argument("--max-months", type=int, default=12, help="max months per query (Softrade caps at 12)")
+    ap.add_argument("--max-months", type=int, default=12,
+                    help="max months per job (Softrade refuses queries over 12; leave at 12 "
+                         "and split later with run_state.py split, only if a query truncates)")
     ap.add_argument("--label", default=None, help="free-text label for this run")
     args = ap.parse_args(argv)
 

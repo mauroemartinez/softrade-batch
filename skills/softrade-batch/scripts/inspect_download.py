@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Inspect a downloaded Softrade export and report its shape.
 
-Three jobs:
+Four jobs:
   1. Confirm the file is real data and not an error page or an empty export.
   2. Detect silent truncation. Softrade caps a query at 30,000 customs RECORDS,
      not rows, and the export expands each record into one row per line item. A
@@ -9,9 +9,20 @@ Three jobs:
      one can look perfectly normal. Counting rows cannot tell the difference.
   3. Print the column layout so it can be compared against, or written into,
      references/columns.md -- without ever loading the rows into the chat.
+  4. Record the outcome in the manifest itself, with --record.
 
 Usage:
-  python inspect_download.py FILE [--schema references/columns.md] [--json]
+  python inspect_download.py FILE [--json]
+  python inspect_download.py FILE --record RUN_DIR --job 7
+
+`--record` is the preferred path. It writes file, rows and records straight into
+the manifest and picks the status from what the file actually contains, so no
+count is ever retyped by hand:
+
+  real data      -> done
+  zero rows      -> skipped ("sin datos para el periodo")
+  truncated      -> failed  (the file is incomplete; split the job and redo it)
+  HTML / 0 bytes -> failed  (expired session or an export that never happened)
 
 Exit codes: 0 file looks good, 2 file is empty or unreadable, 3 file is truncated.
 """
@@ -98,6 +109,48 @@ def count_records(frame):
     return None, None
 
 
+def record_outcome(run_dir, index, status, path, rows=None, records=None, note=None):
+    """Write this file's real numbers into the manifest.
+
+    The point of this function is that nobody retypes a row count. A count typed
+    by hand is a count that can be wrong, and a wrong one corrupts both the
+    closing summary and the quota tracking, silently.
+    """
+    from datetime import datetime
+
+    manifest_path = os.path.join(run_dir, "manifest.json")
+    if not os.path.exists(manifest_path):
+        sys.exit("no manifest at %s -- run plan_run.py first" % manifest_path)
+    with open(manifest_path, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+
+    jobs = manifest["jobs"]
+    if index < 0 or index >= len(jobs):
+        sys.exit("job index %d out of range (0..%d)" % (index, len(jobs) - 1))
+    job = jobs[index]
+
+    job["status"] = status
+    job["file"] = os.path.basename(path)
+    job["rows"] = rows
+    job["records"] = records
+    job["note"] = note
+    if status == "failed":
+        job["attempts"] = job.get("attempts", 0) + 1
+    job["updated_at"] = datetime.now().isoformat(timespec="seconds")
+
+    with open(manifest_path, "w", encoding="utf-8") as fh:
+        json.dump(manifest, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
+
+    detail = ""
+    if rows is not None:
+        detail = ": %s rows" % format(rows, ",")
+        detail += ", %s records" % format(records, ",") if records is not None else ", records unknown"
+    print("manifest: job %d -> %s%s" % (index, status, detail))
+    if note:
+        print("          %s" % note)
+
+
 def profile(frame):
     cols = []
     total = len(frame)
@@ -122,7 +175,17 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("path")
     ap.add_argument("--json", action="store_true", help="emit machine-readable output")
+    ap.add_argument("--record", metavar="RUN_DIR",
+                    help="write the outcome straight into RUN_DIR/manifest.json")
+    ap.add_argument("--job", type=int, help="job index to record against (required with --record)")
     args = ap.parse_args(argv)
+
+    if args.record and args.job is None:
+        sys.exit("--job is required with --record")
+
+    def record(status, rows=None, records=None, note=None):
+        if args.record:
+            record_outcome(args.record, args.job, status, args.path, rows, records, note)
 
     if not os.path.exists(args.path):
         sys.exit("no such file: %s" % args.path)
@@ -130,9 +193,11 @@ def main(argv=None):
     size = os.path.getsize(args.path)
     if size == 0:
         print("EMPTY: 0 bytes -- the download did not produce a file")
+        record("failed", note="0 bytes: the download never produced a file")
         return 2
     if looks_like_html(args.path):
         print("NOT DATA: file starts like an HTML page (expired session or an error screen)")
+        record("failed", note="HTML instead of a spreadsheet: session probably expired")
         return 2
 
     frame = read_table(args.path)
@@ -151,8 +216,13 @@ def main(argv=None):
             "columns": cols,
         }, ensure_ascii=False, indent=2))
         if truncated:
+            record("failed", len(frame), records, "truncated at the %d-record cap; split and redo" % RECORD_CAP)
             return 3
-        return 0 if len(frame) else 2
+        if not len(frame):
+            record("skipped", 0, 0, "sin datos para el periodo")
+            return 2
+        record("done", len(frame), records)
+        return 0
 
     print("file    %s" % os.path.basename(args.path))
     print("bytes   %d" % size)
@@ -168,6 +238,7 @@ def main(argv=None):
         print("  %-38s %5.1f%% filled  e.g. %s" % (col["name"][:38], col["fill_pct"], col["sample"]))
     if not len(frame):
         print("WARNING: zero data rows -- filters may have matched nothing")
+        record("skipped", 0, 0, "sin datos para el periodo")
         return 2
     if truncated:
         print()
@@ -175,10 +246,13 @@ def main(argv=None):
         print("           Softrade kept only the first %d records and said so only" % RECORD_CAP)
         print("           on screen. This file is INCOMPLETE. Split the query into")
         print("           shorter periods, or narrow it, and download again.")
+        print("           run_state.py split RUN_DIR --job N")
+        record("failed", len(frame), records, "truncated at the %d-record cap; split and redo" % RECORD_CAP)
         return 3
     if records is not None and records > RECORD_CAP * 0.9:
         print()
         print("NOTE: %d records is close to the %d cap. The next period may truncate." % (records, RECORD_CAP))
+    record("done", len(frame), records)
     return 0
 
 
