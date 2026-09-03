@@ -18,7 +18,7 @@ downloads/
 # Los Excel de una corrida no se publican, pero el manifiesto SI se versiona:
 # no tiene datos de empresas, solo que trabajo se hizo y cuando, y es lo que
 # permite retomar la corrida en otra maquina.
-corrida-catalogo/downloads/
+corrida-catalogo/**/downloads/
 
 # Python
 __pycache__/
