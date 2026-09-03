@@ -6,7 +6,6 @@ long batch must never hold the whole manifest in context, only the next job.
 
   python run_state.py next   RUN_DIR
   python run_state.py status RUN_DIR
-  python run_state.py quota  RUN_DIR [--quota 200000]
   python run_state.py done   RUN_DIR --job 7 --file arg_imports_2024.xlsx [--rows 15230] [--records 2]
   python run_state.py fail   RUN_DIR --job 7 --note "filtro de pais no cargo"
   python run_state.py skip   RUN_DIR --job 7 --note "sin datos para el periodo"
@@ -25,13 +24,6 @@ from datetime import datetime
 
 MANIFEST_NAME = "manifest.json"
 TERMINAL = {"done", "skipped", "split"}
-
-# Softrade accounts carry a monthly row allowance and the application displays
-# consumption nowhere at all. The manifest is the only place it gets counted, so
-# these thresholds exist to stop a run before it quietly eats the month.
-DEFAULT_QUOTA = 200000
-WARN_AT = 0.50
-STOP_AT = 0.80
 
 
 def load(run_dir):
@@ -67,6 +59,15 @@ def cmd_next(manifest, _args):
         print("  report     %s" % job["report"])
         print("  date_from  %s" % job["date_from"])
         print("  date_to    %s" % job["date_to"])
+        # The filters define the dataset as much as the dates do. Print them
+        # every time, so a run resumed in a fresh chat sets the same query
+        # instead of quietly downloading a different one.
+        filters = job.get("filters") or {}
+        if filters:
+            for name in sorted(filters):
+                print("  %-10s %s" % (name, ", ".join(filters[name])))
+        else:
+            print("  filters    (none: whole country/period)")
         print("  status     %s (attempts %d)" % (job["status"], job["attempts"]))
         if job.get("note"):
             print("  last_note  %s" % job["note"])
@@ -76,32 +77,6 @@ def cmd_next(manifest, _args):
         print("  save_to    %s" % manifest["download_dir"])
         return 0
     print("no pending jobs -- run complete")
-    return 0
-
-
-def cmd_quota(manifest, args):
-    limit = args.quota or DEFAULT_QUOTA
-    totals = month_totals(manifest)
-    if not totals:
-        print("nothing downloaded yet in this run")
-        return 0
-    print("rows downloaded, by calendar month (limit %s)" % format(limit, ","))
-    for month in sorted(totals):
-        used = totals[month]
-        print("  %-10s %10s  %5.1f%%" % (month, format(used, ","), 100.0 * used / limit))
-    line = quota_line(manifest, limit)
-    if line:
-        level, used, pct = line
-        print()
-        if level == "STOP":
-            print("STOP: %.0f%% of this month's allowance is gone (%s rows)." % (pct * 100, format(used, ",")))
-            print("      Do not start another tramo without asking the user first.")
-        elif level == "WARN":
-            print("WARN: %.0f%% of this month's allowance is gone (%s rows)." % (pct * 100, format(used, ",")))
-            print("      Tell the user before continuing.")
-    print()
-    print("This run only. Downloads made outside this manifest are not counted,")
-    print("and Softrade itself reports consumption nowhere.")
     return 0
 
 
@@ -154,34 +129,6 @@ def run_totals(manifest):
     return rows, records, unknown
 
 
-def month_totals(manifest):
-    """Rows downloaded per calendar month, keyed YYYY-MM by download date."""
-    totals = {}
-    for job in manifest["jobs"]:
-        if job["status"] != "done" or not job.get("rows"):
-            continue
-        stamp = job.get("updated_at") or ""
-        month = stamp[:7] or "sin-fecha"
-        totals[month] = totals.get(month, 0) + int(job["rows"])
-    return totals
-
-
-def quota_line(manifest, limit):
-    """One line on this calendar month's consumption, or None if nothing spent."""
-    this_month = datetime.now().strftime("%Y-%m")
-    used = month_totals(manifest).get(this_month, 0)
-    if not used:
-        return None
-    pct = used / float(limit)
-    if pct >= STOP_AT:
-        level = "STOP"
-    elif pct >= WARN_AT:
-        level = "WARN"
-    else:
-        level = "ok"
-    return level, used, pct
-
-
 def cmd_done(manifest, args):
     job = pick(manifest, args.job)
     if not args.file:
@@ -194,21 +141,14 @@ def cmd_done(manifest, args):
     _stamp(job)
     if args.rows is None:
         print("job %d -> done (%s)" % (args.job, args.file))
-        print("  WARNING: no row count recorded. Quota tracking undercounts this")
-        print("           job, and the closing summary cannot report it. Prefer")
-        print("           inspect_download.py --record, which fills this in.")
+        print("  WARNING: no row count recorded, so the closing summary cannot")
+        print("           report this job. Prefer inspect_download.py --record,")
+        print("           which fills it in from the file itself.")
     elif args.records is None:
         print("job %d -> done (%s): %s rows, records unknown" % (args.job, args.file, format(args.rows, ",")))
     else:
         print("job %d -> done (%s): %s rows, %s records" % (
             args.job, args.file, format(args.rows, ","), format(args.records, ",")))
-    line = quota_line(manifest, args.quota or DEFAULT_QUOTA)
-    if line:
-        level, used, pct = line
-        if level in ("WARN", "STOP"):
-            print("%s: %s rows this calendar month, %.0f%% of the allowance." % (level, format(used, ","), pct * 100))
-            if level == "STOP":
-                print("      Stop and ask the user before the next tramo.")
     return 0
 
 
@@ -237,7 +177,7 @@ def cmd_split(manifest, args):
     This is the second rung of the escalation ladder in SKILL.md: try the whole
     period first, split only when the query actually came back truncated or with
     the "demasiado extensa" notice. Splitting up front turns a single download
-    into twelve and burns quota on months that were never going to be large.
+    into twelve for no reason, most of them coming back empty.
 
     The original job is marked `split` rather than deleted, and the new jobs are
     appended, so every index the agent has already seen keeps pointing at the
@@ -275,6 +215,9 @@ def cmd_split(manifest, args):
             "report": job["report"],
             "date_from": chunk["date_from"],
             "date_to": chunk["date_to"],
+            # Sub-jobs inherit the parent's filters. Splitting a period must not
+            # silently widen the query.
+            "filters": dict(job.get("filters") or {}),
             "status": "pending",
             "file": None,
             "rows": None,
@@ -312,7 +255,6 @@ def cmd_reset(manifest, args):
 COMMANDS = {
     "next": (cmd_next, False),
     "status": (cmd_status, False),
-    "quota": (cmd_quota, False),
     "done": (cmd_done, True),
     "fail": (cmd_fail, True),
     "skip": (cmd_skip, True),
@@ -331,7 +273,6 @@ def main(argv=None):
     ap.add_argument("--records", type=int, help="distinct customs operations in the file (not rows)")
     ap.add_argument("--max-months", type=int, help="months per sub-job for `split` (default 1)")
     ap.add_argument("--note", help="free-text note")
-    ap.add_argument("--quota", type=int, help="monthly row allowance (default %d)" % DEFAULT_QUOTA)
     args = ap.parse_args(argv)
 
     handler, writes = COMMANDS[args.command]

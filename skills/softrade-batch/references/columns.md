@@ -152,7 +152,40 @@ Importaciones Detalladas (a foreign parent and the local company) but only **one
 in Importaciones. Never carry a resolved entity from one report to another
 without re-checking it.
 
+## Argentina / Exportaciones
+
+Verified 2026-09-03, one month (07/2026), Codigo NCM-SIM = 8544.42:
+**4 rows, 4 records, 9 columns.** One row per record, no line-item expansion.
+
+`Identificador | Fecha | Código NCM-SIM | País de Destino | Aduana | Transporte |
+U$S FOB | Kgs. Netos | Descripción`
+
+### There is no Exportador column at all
+
+Exportaciones Detalladas carries an `Exportador` column that is `No disponible` in
+100% of rows. The plain Exportaciones report does not carry the column **at all**.
+Both are equally useless for attributing a shipment to a company, but they fail
+differently, and only the Detalladas one looks like it might have worked.
+
+### This is the report where the Excel is NOT richer than the screen
+
+For Importaciones Detalladas the export holds 36 columns against 12 on screen, and
+"never conclude anything from the grid" is the right rule. Here the Excel holds the
+**same 9 columns** the grid shows. The rule that the file beats the screen is a
+property of the detailed import reports, not of Softrade in general.
+
+### Filter set
+
+`Periodo (desde/al) | Identificador (desde/hasta) | Codigo NCM-SIM |
+Pais de Destino | Aduana | Transporte | Descripcion | U$S FOB (desde/hasta) |
+Kgs. Netos (desde/hasta)`
+
+Nine filters against the import form's fifteen. No entity filter of any kind, which
+is consistent with the missing column. `Codigo NCM-SIM` here is a **plain text
+input**, not the chips widget the imports form uses, and a 6-digit code entered as
+`854442` is normalised by Softrade to `8544.42`.
+
 ## Other reports
 
-Not yet documented: Exportaciones (non detailed), Otras Operaciones, the Acumulados
-and Empresas modules, and every country other than Argentina.
+Not yet documented: Otras Operaciones, the Acumulados and Empresas modules, and
+most reports of countries other than Argentina. See `coverage.md` for the order.

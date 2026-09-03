@@ -23,8 +23,11 @@ Hecho para el caso que más duele: **cuando son muchas descargas** y a mitad de 
 - [Tutorial: tu primera descarga](#tutorial-tu-primera-descarga)
 - [Ejemplos de pedidos](#ejemplos-de-pedidos)
 - [Qué países y qué reportes hay](#qué-países-y-qué-reportes-hay)
+- [¿En qué países se ve el nombre de la empresa?](#en-qué-países-se-ve-el-nombre-de-la-empresa)
+- [¿Qué campos trae cada base?](#qué-campos-trae-cada-base)
 - [Las trampas de Softrade](#las-trampas-de-softrade)
 - [Preguntas frecuentes](#preguntas-frecuentes)
+- [Estado del proyecto](#estado-del-proyecto)
 - [Licencia](#licencia)
 
 ---
@@ -132,9 +135,16 @@ La próxima vez que abras Claude Code ya está disponible.
 
 ## Tutorial: tu primera descarga
 
-### Paso 1: pedile lo que querés, en castellano
+### Paso 1: dejá el navegador listo
 
-Abrí Claude Code y escribí, tal cual:
+**Esto va primero, antes de pedir nada.** Sin el navegador conectado no hay forma de que la herramienta llegue a Softrade.
+
+1. Abrí Chrome con la extensión de Claude instalada.
+2. Abrí el panel de Claude y **fijate que esté logueado con la misma cuenta que usás en Claude Code**. Si no coinciden, la herramienta no ve tu navegador y te va a decir que no hay ninguno conectado, aunque lo tengas abierto delante tuyo.
+
+### Paso 2: pedile lo que querés, en castellano
+
+Escribí, tal cual:
 
 ```
 necesito las importaciones de mi empresa MI EMPRESA S.A. de este año
@@ -142,15 +152,17 @@ necesito las importaciones de mi empresa MI EMPRESA S.A. de este año
 
 No hay ningún comando raro que memorizar. Se activa sola cuando reconoce que estás pidiendo datos de Softrade.
 
-### Paso 2: logueate cuando te lo pida
+### Paso 3: logueate en la pestaña que abre
 
-Te abre una pestaña en Softrade y te dice algo así:
+Te abre **una pestaña nueva** y te dice algo así:
 
 > Abrí una pestaña en Softrade y me tiró al login. Logueate vos ahí y decime "listo".
 
 Entrás con tu usuario y contraseña **vos, a mano**, y escribís "listo".
 
-### Paso 3: confirmá la empresa
+Que ya tengas Softrade abierto en otra pestaña **no alcanza**: Softrade guarda la sesión por pestaña, así que la que abre la herramienta arranca deslogueada siempre. No es un error.
+
+### Paso 4: confirmá la empresa
 
 Acá está lo importante. Los nombres en la aduana no son los que usás vos. Te muestra lo que encontró:
 
@@ -163,7 +175,7 @@ Buscando "MI EMPRESA" aparecen dos:
 
 **Elegir mal no da error.** Te devuelve otro set de datos igual de creíble. Por eso siempre pregunta antes.
 
-### Paso 4: confirmá la consulta
+### Paso 5: confirmá la consulta
 
 Te muestra la línea completa antes de tocar nada:
 
@@ -171,7 +183,7 @@ Te muestra la línea completa antes de tocar nada:
 
 Fijate que dice **hasta 07/2026** aunque pediste "este año". Es porque Softrade tiene los datos cargados hasta ahí, y lo lee del propio calendario del sitio en vez de suponerlo.
 
-### Paso 5: revisá lo que salió
+### Paso 6: revisá lo que salió
 
 Baja el Excel, lo renombra con algo que se entienda, y te dice qué trajo:
 
@@ -309,6 +321,67 @@ Egipto llega hasta **febrero de 2015**, once años atrás. Taiwán a 2017, India
 
 ---
 
+---
+
+## ¿Qué campos trae cada base?
+
+Otra cosa que no se puede adivinar: **que un país tenga datos no significa que traiga el campo que necesitás.** Las columnas van de 8 a 48 según el país, y no hay relación con el tamaño de la economía.
+
+La matriz completa está en [`references/fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md). Está medida sobre archivos reales descargados, no sobre lo que promete el formulario.
+
+Lo que más sorprende:
+
+### El Incoterm casi no existe
+
+Solo lo dan **Ecuador, Bolivia y Chile** con ese nombre. Argentina y México lo tienen disfrazado de `Condición de Venta`, que cumple la misma función. **Los otros 15 reportes medidos no lo traen de ninguna forma.**
+
+Si tu consulta depende del Incoterm, esos cinco países son toda tu lista.
+
+### La Marca la dan cinco
+
+**Ecuador, Costa Rica, Chile, Perú y Argentina.** Nadie más.
+
+### FOB y CIF no vienen siempre juntos
+
+Los reportes chicos —Honduras, Puerto Rico, El Salvador, de 8 a 11 columnas— traen **solo CIF**. No podés separar mercadería de flete y seguro.
+
+Brasil Importaciones es el caso inverso: trae FOB y no CIF. Y Uruguay no trae ninguno de los dos con ese nombre, trae `U$S VNA` (Valor en Aduana), aunque como sí da FOB, flete y seguro por separado, el CIF se puede reconstruir sumando.
+
+### Ecuador es la base más completa del sistema
+
+Es la única que marca las seis casillas: **48 columnas, al día, nombra las dos puntas, y trae Incoterm y Marca.** Si necesitás el dato más rico posible y no tenés el país fijado de antemano, es Ecuador.
+
+Costa Rica le sigue de cerca con 48 columnas, pero sin Incoterm.
+
+### El resumen en una tabla
+
+Las 20 bases medidas hasta ahora, ordenadas por qué tan completas son:
+
+| País | FOB | CIF | Importador | Proveedor | Incoterm | Marca |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|
+| Ecuador | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Costa Rica | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| Chile | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| Perú | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| Bolivia | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Argentina *(detalladas)* | ✅ | ✅ | ✅ | — | ⚠️ | ✅ |
+| Colombia | ✅ | ✅ | ✅ | ✅ | — | — |
+| Paraguay | ✅ | ✅ | ⚠️ | ⚠️ | — | — |
+| Panamá | ✅ | ✅ | ✅ | ✅ | — | — |
+| Nicaragua *(detalladas)* | ✅ | ✅ | ✅ | ✅ | — | — |
+| Rep. Dominicana *(detalladas)* | ✅ | ✅ | ✅ | ✅ | — | — |
+| Uruguay | ✅ | ⚠️ | ✅ | — | — | — |
+| Guatemala *(detalladas)* | ✅ | ✅ | — | — | — | — |
+| Venezuela | — | ✅ | ✅ | — | — | — |
+| México | — | ✅ | — | — | ⚠️ | — |
+| Brasil | ✅ | — | — | — | — | — |
+| Honduras · Puerto Rico · El Salvador | — | ✅ | — | — | — | — |
+
+Las ⚠️ están explicadas una por una en la [matriz completa](skills/softrade-batch/references/fields-matrix.md): Paraguay dice "Probable", Argentina y México usan `Condición de Venta`, y Uruguay usa `VNA` en vez de CIF.
+
+**Esto cubre las importaciones.** Del lado exportador no hay ninguna medición todavía salvo Argentina, así que la columna `Comprador` está documentada como existente pero nunca se vio en un archivo real.
+
+
 ## Las trampas de Softrade
 
 Todo esto está verificado a mano contra el sitio real. Sirve incluso si nunca usás esta herramienta.
@@ -360,21 +433,17 @@ Varias columnas traen el texto literal `No disponible` en vez de venir vacías. 
 
 `Item` y `Cantidad` aparecen **dos veces cada una** en el mismo archivo. La segunda pertenece al sub-registro de marca y no siempre coincide con la primera. Si tu herramienta las junta por nombre, vas a perder una.
 
-### 7. Softrade no te muestra cuánto consumiste
-
-La mayoría de las cuentas tienen un tope mensual de filas (habitualmente 200.000 por mes calendario). **La aplicación no muestra el consumo en ningún lado**: no hay contador, ni aviso, ni pantalla de uso.
-
-Esta herramienta lleva la cuenta sola en la planilla de control y te avisa antes de que una corrida se pase.
-
 ---
 
 ## Preguntas frecuentes
 
 ### ¿Funciona en ChatGPT?
 
-**No.** Esto es una *skill* de Claude Code, un formato que solo entiende Claude. ChatGPT no lo va a leer.
+**No sola, pero sí a mano.** No se instala como skill —ese formato lo entiende Claude Code— pero el contenido es markdown común: pegándole [`SKILL.md`](skills/softrade-batch/SKILL.md) y los archivos de [`references/`](skills/softrade-batch/references/) como contexto, funciona. Está probado.
 
-Lo que **sí** te sirve de acá aunque uses otra herramienta:
+La diferencia es que la instalación automática y la memoria entre sesiones las perdés: se los tenés que pegar cada vez, y la parte de manejar el navegador depende de que la herramienta que uses pueda hacerlo.
+
+Lo que te sirve de acá con cualquier asistente:
 
 - Los documentos de [`references/`](skills/softrade-batch/references/), que son la investigación de cómo se comporta Softrade. Los leés vos, o se los pegás a cualquier asistente como contexto.
 - Los scripts de Python, que son programas comunes y corren solos en cualquier lado.
@@ -397,17 +466,27 @@ Depende del tamaño. Una consulta chica (una empresa, un año) son segundos. Un 
 
 ### ¿Puede bajar todo de todos los países de una?
 
-Puede, pero conviene planificarlo. Es una corrida larga, consume cuota, y hay que hacerla en varias sesiones. Te dice cuántos archivos son antes de empezar.
+Puede, pero conviene planificarlo. Es una corrida larga y hay que hacerla en varias sesiones. Te dice cuántos archivos son antes de empezar.
 
 ---
 
 ## Estado del proyecto
 
-Verificado punta a punta contra el sitio real para **Argentina**: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
+Hay tres capas de relevamiento y no están igual de avanzadas. Vale la pena distinguirlas, porque una cosa es saber que un reporte existe y otra muy distinta es saber qué trae adentro.
 
-El catálogo de los 78 países está completo y verificado. Los formularios y las columnas de los demás países **todavía no**, porque hay que correrlos uno por uno y anotar lo que vuelve.
+| Capa | Qué contesta | Estado |
+|---|---|---|
+| **Catálogo** | Qué reportes ofrece cada país | ✅ Completo, 78 países |
+| **Empresas y vigencia** | Quién nombra al importador o al exportador, y hasta qué fecha llegan los datos | ✅ Completo, las dos direcciones, 78 países |
+| **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **20 reportes de muchos más** |
 
-El flujo es igual en todos, así que extenderlo es sobre todo cuestión de usarlo y documentar.
+Los 20 medidos son las importaciones de los 19 países latinoamericanos más Cargas Marítimas de Brasil, todos con archivo descargado y contado. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
+
+Argentina además está verificada punta a punta en cuatro reportes: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
+
+**Lo más grande que falta:** todo el lado exportador salvo Argentina, los 17 países de Asia y África que sí nombran empresas, y **8 de las 14 familias de reporte que nunca se abrieron** — Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
+
+El orden para completarlo, con el país más barato elegido para cada familia, está en [`coverage.md`](skills/softrade-batch/references/coverage.md). El flujo es igual en todos, así que extenderlo es sobre todo cuestión de usarlo y documentar.
 
 ### Se aceptan aportes
 
