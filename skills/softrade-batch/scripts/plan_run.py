@@ -78,11 +78,17 @@ def split_range(start, end, max_months):
     return chunks
 
 
+def filters_key(filters):
+    """Stable, hashable form of a filter set, for deduplication."""
+    return tuple(sorted((k, tuple(v)) for k, v in (filters or {}).items()))
+
+
 def job_key(job):
-    return (job["country"], job["report"], job["date_from"], job["date_to"])
+    return (job["country"], job["report"], job["date_from"], job["date_to"],
+            filters_key(job.get("filters")))
 
 
-def build_jobs(countries, reports, chunks):
+def build_jobs(countries, reports, chunks, filters=None):
     jobs = []
     for country in countries:
         for report in reports:
@@ -93,6 +99,12 @@ def build_jobs(countries, reports, chunks):
                         "report": report,
                         "date_from": chunk["date_from"],
                         "date_to": chunk["date_to"],
+                        # The filters are half the query. A job that records only
+                        # country/report/dates cannot be reproduced: "importaciones
+                        # de AR en 2024" is a different dataset for every importer.
+                        # Leaving them in the chat means a resumed run silently
+                        # queries something else.
+                        "filters": dict(filters or {}),
                         "status": "pending",
                         "file": None,
                         "rows": None,
@@ -116,10 +128,32 @@ def main(argv=None):
                     help="max months per job (Softrade refuses queries over 12; leave at 12 "
                          "and split later with run_state.py split, only if a query truncates)")
     ap.add_argument("--label", default=None, help="free-text label for this run")
+
+    f = ap.add_argument_group(
+        "filters",
+        "Everything that narrows the query beyond country/report/period. Record "
+        "these HERE, never only in the chat: they are what makes a resumed run "
+        "reproduce the same dataset. Each is repeatable.")
+    f.add_argument("--importador", action="append", metavar="NAME",
+                   help="entity name exactly as Softrade spells it")
+    f.add_argument("--exportador", action="append", metavar="NAME")
+    f.add_argument("--proveedor", action="append", metavar="NAME")
+    f.add_argument("--ncm", action="append", metavar="CODE",
+                   help="tariff code, whatever the country's nomenclature calls it")
+    f.add_argument("--aduana", action="append", metavar="NAME")
+    f.add_argument("--pais-origen", dest="pais_origen", action="append", metavar="COUNTRY")
+    f.add_argument("--marca", action="append", metavar="NAME")
+
     args = ap.parse_args(argv)
 
+    filters = {k: v for k, v in (
+        ("importador", args.importador), ("exportador", args.exportador),
+        ("proveedor", args.proveedor), ("ncm", args.ncm), ("aduana", args.aduana),
+        ("pais_origen", args.pais_origen), ("marca", args.marca),
+    ) if v}
+
     chunks = split_range(month_floor(args.date_from), month_floor(args.date_to), args.max_months)
-    fresh = build_jobs(args.country, args.report, chunks)
+    fresh = build_jobs(args.country, args.report, chunks, filters)
 
     os.makedirs(args.out, exist_ok=True)
     path = os.path.join(args.out, MANIFEST_NAME)
