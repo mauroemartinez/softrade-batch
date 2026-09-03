@@ -1,0 +1,2702 @@
+{
+  "meta": {
+    "captured": "2026-09-02",
+    "source": "derived from skills/softrade-batch/references/*.md by tools/build_catalog.py",
+    "record_cap": 30000,
+    "max_months_per_query": 12,
+    "vitality_thresholds_months": {
+      "viva": 4,
+      "rezagada": 18
+    },
+    "name_states": {
+      "string": "columna y filtro por empresa usables (p. ej. 'Importador')",
+      "null": "reporte anónimo de ese lado: no hay columna ni filtro",
+      "no_disponible": "la columna existe pero es 'No disponible' en el 100% y no hay filtro",
+      "unknown": "el form no se relevó; puede o no filtrar por empresa",
+      "Probable ...": "nombre inferido por Softrade, no declarado"
+    }
+  },
+  "report_types": {
+    "import": {
+      "label_es": "Importaciones",
+      "family": "customs",
+      "direction": "import",
+      "detailed": false
+    },
+    "importDetalladas": {
+      "label_es": "Importaciones Detalladas",
+      "family": "customs",
+      "direction": "import",
+      "detailed": true
+    },
+    "export": {
+      "label_es": "Exportaciones",
+      "family": "customs",
+      "direction": "export",
+      "detailed": false
+    },
+    "exportDetalladas": {
+      "label_es": "Exportaciones Detalladas",
+      "family": "customs",
+      "direction": "export",
+      "detailed": true
+    },
+    "otrasOperaciones": {
+      "label_es": "Otras Operaciones",
+      "family": "customs",
+      "direction": "both",
+      "detailed": false
+    },
+    "historicoImport": {
+      "label_es": "Histórico Importaciones",
+      "family": "customs",
+      "direction": "import",
+      "detailed": false
+    },
+    "historicoExport": {
+      "label_es": "Histórico Exportaciones",
+      "family": "customs",
+      "direction": "export",
+      "detailed": false
+    },
+    "cargasIngresos": {
+      "label_es": "Cargas - Ingresos",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasSalidas": {
+      "label_es": "Cargas - Salidas",
+      "family": "cargas",
+      "direction": "export",
+      "detailed": false
+    },
+    "cargasMaritimasIngresos": {
+      "label_es": "Cargas Marítimas - Ingresos",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasMaritimasSalidas": {
+      "label_es": "Cargas Marítimas - Salidas",
+      "family": "cargas",
+      "direction": "export",
+      "detailed": false
+    },
+    "cargasHistoricoIngresos": {
+      "label_es": "Cargas Histórico - Ingresos",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasHistoricoSalidas": {
+      "label_es": "Cargas Histórico - Salidas",
+      "family": "cargas",
+      "direction": "export",
+      "detailed": false
+    },
+    "cargasTotalesIngresos": {
+      "label_es": "Cargas Totales - Ingresos",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasTotalesSalidas": {
+      "label_es": "Cargas Totales - Salidas",
+      "family": "cargas",
+      "direction": "export",
+      "detailed": false
+    },
+    "cargasMaritimas": {
+      "label_es": "Cargas Marítimas",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasAereas": {
+      "label_es": "Cargas Aéreas",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "cargasTerrestres": {
+      "label_es": "Cargas Terrestres",
+      "family": "cargas",
+      "direction": "import",
+      "detailed": false
+    },
+    "zonaFranca": {
+      "label_es": "Zona Franca",
+      "family": "zona",
+      "direction": "both",
+      "detailed": false
+    },
+    "zonaLibreIngresos": {
+      "label_es": "Zona Libre - Ingresos",
+      "family": "zona",
+      "direction": "import",
+      "detailed": false
+    },
+    "zonaLibreSalidas": {
+      "label_es": "Zona Libre - Salidas",
+      "family": "zona",
+      "direction": "export",
+      "detailed": false
+    },
+    "transitos": {
+      "label_es": "Tránsitos",
+      "family": "transito",
+      "direction": "both",
+      "detailed": false
+    },
+    "importTotalizadas": {
+      "label_es": "Importaciones Totalizadas",
+      "family": "customs",
+      "direction": "import",
+      "detailed": false
+    },
+    "exportTotalizadas": {
+      "label_es": "Exportaciones Totalizadas",
+      "family": "customs",
+      "direction": "export",
+      "detailed": false
+    },
+    "normativa": {
+      "label_es": "Normativa",
+      "family": "otro",
+      "direction": "n/a",
+      "detailed": false
+    }
+  },
+  "report_aliases": {
+    "importaciones": "import",
+    "impo": "import",
+    "las impo": "import",
+    "imports": "import",
+    "importacion": "import",
+    "importaciones detalladas": "importDetalladas",
+    "impo detalladas": "importDetalladas",
+    "impo det": "importDetalladas",
+    "importaciones detallada": "importDetalladas",
+    "detalladas import": "importDetalladas",
+    "imports detailed": "importDetalladas",
+    "import detailed": "importDetalladas",
+    "exports detailed": "exportDetalladas",
+    "export detailed": "exportDetalladas",
+    "exportaciones": "export",
+    "expo": "export",
+    "las expo": "export",
+    "exports": "export",
+    "exportaciones detalladas": "exportDetalladas",
+    "expo detalladas": "exportDetalladas",
+    "expo det": "exportDetalladas",
+    "otras operaciones": "otrasOperaciones",
+    "historico importaciones": "historicoImport",
+    "historico impo": "historicoImport",
+    "historico exportaciones": "historicoExport",
+    "historico expo": "historicoExport",
+    "cargas ingresos": "cargasIngresos",
+    "cargas salidas": "cargasSalidas",
+    "cargas maritimas ingresos": "cargasMaritimasIngresos",
+    "cargas maritimas salidas": "cargasMaritimasSalidas",
+    "cargas maritimas - ingresos": "cargasMaritimasIngresos",
+    "cargas maritimas - salidas": "cargasMaritimasSalidas",
+    "cargas historico ingresos": "cargasHistoricoIngresos",
+    "cargas historico salidas": "cargasHistoricoSalidas",
+    "cargas totales ingresos": "cargasTotalesIngresos",
+    "cargas totales - ingresos": "cargasTotalesIngresos",
+    "cargas totales salidas": "cargasTotalesSalidas",
+    "cargas totales - salidas": "cargasTotalesSalidas",
+    "cargas totales": "cargasTotalesIngresos",
+    "cargas maritimas": "cargasMaritimas",
+    "cargas aereas": "cargasAereas",
+    "cargas terrestres": "cargasTerrestres",
+    "zona franca": "zonaFranca",
+    "zona libre ingresos": "zonaLibreIngresos",
+    "zona libre salidas": "zonaLibreSalidas",
+    "zona libre": "zonaLibreIngresos",
+    "transitos": "transitos",
+    "transito": "transitos",
+    "importaciones totalizadas": "importTotalizadas",
+    "totalizadas": "importTotalizadas",
+    "exportaciones totalizadas": "exportTotalizadas",
+    "normativa": "normativa"
+  },
+  "countries": {
+    "AR": {
+      "name_es": "Argentina",
+      "region": "sudamerica",
+      "nomenclature": "NCM-SIM",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 13,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          }
+        },
+        "importDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 36,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 9,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "no existe columna Exportador ni filtro; la columna Marca a veces nombra la firma"
+        },
+        "exportDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 31,
+          "names": {
+            "local": "no_disponible",
+            "counterparty": null
+          },
+          "inferred": true,
+          "note": "Exportador = 'No disponible' en 100% de filas, sin filtro; aviso de estimación por IA"
+        },
+        "otrasOperaciones": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 30,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "AT": {
+      "name_es": "Austria",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "AU": {
+      "name_es": "Australia",
+      "region": "oceania",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "único país con Aduana de Ingreso y de Salida en el form de impo; anónimo"
+        },
+        "export": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "anónimo"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "BD": {
+      "name_es": "Bangladesh",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "solo importaciones, no hay reporte de exportaciones"
+        }
+      }
+    },
+    "BE": {
+      "name_es": "Bélgica",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "BG": {
+      "name_es": "Bulgaria",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "BO": {
+      "name_es": "Bolivia",
+      "region": "sudamerica",
+      "nomenclature": "NANDINA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 25,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        }
+      }
+    },
+    "BR": {
+      "name_es": "Brasil",
+      "region": "sudamerica",
+      "nomenclature": "Codigo NCM",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": 12,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "vitality": "viva",
+          "note": "estadística mensual agregada; Fecha trae solo mes y año"
+        },
+        "importDetalladas": {
+          "cutoff": "2021-11-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "congelada 11/2021"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2021-11-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "congelada 11/2021"
+        },
+        "cargasMaritimasIngresos": {
+          "cutoff": "2023-11-30",
+          "columns_measured": 34,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          },
+          "note": "manifiesto de embarque; trae dirección, email y teléfono de ambas partes: datos personales, no redistribuir"
+        },
+        "cargasMaritimasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          },
+          "note": "contraparte de Ingresos, no relevado"
+        },
+        "cargasHistoricoIngresos": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "cargasHistoricoSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "CA": {
+      "name_es": "Canadá",
+      "region": "norteamerica",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado (Norteamérica solo tiene MX relevado)"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "CL": {
+      "name_es": "Chile",
+      "region": "sudamerica",
+      "nomenclature": "SACH",
+      "reports": {
+        "import": {
+          "cutoff": "2026-06-30",
+          "columns_measured": 40,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          },
+          "note": "trae Incoterm y Marca"
+        },
+        "export": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "CN": {
+      "name_es": "China",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "6 filtros en total; no nombra importadores. Para proveedores chinos, mirá la columna Proveedor de un país importador (PE, VN, PK)"
+        },
+        "export": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "anónimo; estadística agregada"
+        }
+      }
+    },
+    "CO": {
+      "name_es": "Colombia",
+      "region": "sudamerica",
+      "nomenclature": "NANDINA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": 45,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "tiene Transportista"
+        },
+        "export": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        }
+      }
+    },
+    "CR": {
+      "name_es": "Costa Rica",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-08-16",
+          "columns_measured": 48,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "48 columnas, trae Marca (no Incoterm)"
+        },
+        "export": {
+          "cutoff": "2026-08-16",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "zonaFranca": {
+          "cutoff": "2026-08-16",
+          "columns_measured": null,
+          "names": {
+            "local": "Operador",
+            "counterparty": null
+          },
+          "note": "movimientos de zona franca; nombra solo al operador"
+        }
+      }
+    },
+    "CY": {
+      "name_es": "Chipre",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "CZ": {
+      "name_es": "República Checa",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "DE": {
+      "name_es": "Alemania",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "DK": {
+      "name_es": "Dinamarca",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "DO": {
+      "name_es": "Rep. Dominicana",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado; la variante Detalladas llega al 31/07/2026"
+        },
+        "importDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 27,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "tiene Agencia Aduanera"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "el form de export trae Empresa Naviera"
+        }
+      }
+    },
+    "EC": {
+      "name_es": "Ecuador",
+      "region": "sudamerica",
+      "nomenclature": "NANDINA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-08-23",
+          "columns_measured": 48,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "base más completa del sistema: 48 columnas, Incoterm y Marca presentes"
+        },
+        "export": {
+          "cutoff": "2026-08-23",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "trae Estado de Declaración"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "cargasIngresos": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          }
+        },
+        "cargasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "EE": {
+      "name_es": "Estonia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "EG": {
+      "name_es": "Egipto",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2015-02-28",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "la data más vieja del sistema, 02/2015; nunca ofrecer como actual"
+        },
+        "export": {
+          "cutoff": "2015-02-28",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "la data más vieja del sistema, 02/2015"
+        }
+      }
+    },
+    "ES": {
+      "name_es": "España",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "el 'Importaciones' de España es el específico del país: sin Identificador, con País de Origen real y dos aduanas. Más viejo que Totalizadas"
+        },
+        "importTotalizadas": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "pese al nombre, es el dataset UE estándar (euros, FOB, País de Procedencia); más nuevo que 'Importaciones'"
+        },
+        "export": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "específico de España"
+        },
+        "exportTotalizadas": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "dataset UE estándar"
+        }
+      }
+    },
+    "ET": {
+      "name_es": "Etiopía",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          },
+          "note": "import nombra solo al importador, sin proveedor"
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "único país donde el lado exportador es más rico que el importador"
+        }
+      }
+    },
+    "FI": {
+      "name_es": "Finlandia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "FR": {
+      "name_es": "Francia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "GB": {
+      "name_es": "Reino Unido",
+      "region": "europa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-04-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "fuera del bloque UE: Codigo SA y dólares, no euros"
+        },
+        "export": {
+          "cutoff": "2026-04-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "fuera del bloque UE: Codigo SA y dólares"
+        }
+      }
+    },
+    "GR": {
+      "name_es": "Grecia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "GT": {
+      "name_es": "Guatemala",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "importDetalladas": {
+          "cutoff": "2021-12-31",
+          "columns_measured": 17,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "congelada 12/2021; anónimo"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2021-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "congelada 12/2021; anónimo"
+        },
+        "cargasIngresos": {
+          "cutoff": "2019-09-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          },
+          "note": "muy vieja, 09/2019"
+        },
+        "cargasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "HN": {
+      "name_es": "Honduras",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-03-31",
+          "columns_measured": 8,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; reporte fino de 8 columnas, solo CIF"
+        },
+        "export": {
+          "cutoff": "2026-03-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; anónimo"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        }
+      }
+    },
+    "HR": {
+      "name_es": "Croacia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "HU": {
+      "name_es": "Hungría",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "ID": {
+      "name_es": "Indonesia",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2021-09-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "congelada 09/2021"
+        },
+        "export": {
+          "cutoff": "2021-09-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "congelada 09/2021"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "IE": {
+      "name_es": "Irlanda",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "IL": {
+      "name_es": "Israel",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "IN": {
+      "name_es": "India",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2018-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "archivo histórico, 8+ años; no ofrecer para nada actual"
+        },
+        "export": {
+          "cutoff": "2018-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "archivo histórico, 8+ años"
+        }
+      }
+    },
+    "IT": {
+      "name_es": "Italia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "JP": {
+      "name_es": "Japón",
+      "region": "asia",
+      "nomenclature": "Codigo JTS",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "KE": {
+      "name_es": "Kenia",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "filtro Terminal de Contenedores; trae Identificador y Nro. Declaración por separado. No hay reporte de exportaciones"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "KR": {
+      "name_es": "Corea del Sur",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "KZ": {
+      "name_es": "Kazajistán",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "LK": {
+      "name_es": "Sri Lanka",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2019-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "congelada 12/2019"
+        },
+        "export": {
+          "cutoff": "2019-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "congelada 12/2019"
+        }
+      }
+    },
+    "LS": {
+      "name_es": "Lesoto",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "LT": {
+      "name_es": "Lituania",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "LU": {
+      "name_es": "Luxemburgo",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "LV": {
+      "name_es": "Letonia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "MA": {
+      "name_es": "Marruecos",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-02-28",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-02-28",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "MT": {
+      "name_es": "Malta",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "MX": {
+      "name_es": "México",
+      "region": "norteamerica",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2021-11-30",
+          "columns_measured": 29,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "congelada 11/2021; anónima. 'Condición de Venta' cumple la función de Incoterm. Ojo: el Ordinal trae item pegado, el conteo de registros se infla"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporte estándar no relevado; anónimo"
+        },
+        "otrasOperaciones": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "cargasTotalesIngresos": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "única data mexicana viva y con nombres; ambas puntas"
+        },
+        "cargasTotalesSalidas": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "NG": {
+      "name_es": "Nigeria",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2025-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2025-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "NI": {
+      "name_es": "Nicaragua",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado; la variante Detalladas llega al 31/07/2026"
+        },
+        "importDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 27,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "muestra bajada 2026-08-04 (454 filas/454 registros); columnas aún sin documentar"
+        }
+      }
+    },
+    "NL": {
+      "name_es": "Países Bajos",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "NZ": {
+      "name_es": "Nueva Zelanda",
+      "region": "oceania",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "PA": {
+      "name_es": "Panamá",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-08-20",
+          "columns_measured": 30,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "tiene filtro Puerto"
+        },
+        "export": {
+          "cutoff": "2026-08-20",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "zonaLibreIngresos": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Operador",
+            "counterparty": "Proveedor"
+          },
+          "note": "nombra al operador de zona libre y a su proveedor extranjero"
+        },
+        "zonaLibreSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "cargasMaritimasIngresos": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": null
+          },
+          "note": "sin filtro Shipper, solo lado consignatario"
+        },
+        "cargasMaritimasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "PE": {
+      "name_es": "Perú",
+      "region": "sudamerica",
+      "nomenclature": "NANDINA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-08-22",
+          "columns_measured": 31,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "tiene Puerto y Transportista"
+        },
+        "export": {
+          "cutoff": "2026-08-22",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "cargasIngresos": {
+          "cutoff": "2026-08-22",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          }
+        },
+        "cargasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "PH": {
+      "name_es": "Filipinas",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "campo extra 'Pais de Exportador' aparte de país de origen"
+        },
+        "export": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "PK": {
+      "name_es": "Pakistán",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "PL": {
+      "name_es": "Polonia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "PR": {
+      "name_es": "Puerto Rico",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": "2025-07-31",
+          "columns_measured": 11,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; solo CIF"
+        },
+        "export": {
+          "cutoff": "2025-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; anónimo"
+        }
+      }
+    },
+    "PT": {
+      "name_es": "Portugal",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "PY": {
+      "name_es": "Paraguay",
+      "region": "sudamerica",
+      "nomenclature": "Codigo NCM",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": 42,
+          "names": {
+            "local": "Probable Importador",
+            "counterparty": "Probable Proveedor"
+          },
+          "inferred": true,
+          "note": "nombres inferidos por Softrade, no declarados: pasá la palabra 'Probable' al usuario siempre"
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Probable Exportador",
+            "counterparty": "Probable Comprador"
+          },
+          "inferred": true,
+          "note": "nombres inferidos por Softrade, no declarados: pasá la palabra 'Probable' al usuario siempre"
+        }
+      }
+    },
+    "RO": {
+      "name_es": "Rumania",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "RU": {
+      "name_es": "Rusia",
+      "region": "asia",
+      "nomenclature": "Codigo CN FEA",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "importDetalladas": {
+          "cutoff": "2023-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "congelada 12/2023; ambas puntas"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2023-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "congelada 12/2023; ambas puntas"
+        }
+      }
+    },
+    "SE": {
+      "name_es": "Suecia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "SI": {
+      "name_es": "Eslovenia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "SK": {
+      "name_es": "Eslovaquia",
+      "region": "europa",
+      "nomenclature": "Codigo NC",
+      "reports": {
+        "import": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        },
+        "export": {
+          "cutoff": "2026-05-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no por país de origen"
+        }
+      }
+    },
+    "SV": {
+      "name_es": "El Salvador",
+      "region": "centroamerica",
+      "nomenclature": "SAC",
+      "reports": {
+        "import": {
+          "cutoff": "2025-06-30",
+          "columns_measured": 8,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; reporte fino de 8 columnas, solo CIF"
+        },
+        "export": {
+          "cutoff": "2025-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "rezagada; anónimo"
+        }
+      }
+    },
+    "TH": {
+      "name_es": "Tailandia",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          }
+        }
+      }
+    },
+    "TR": {
+      "name_es": "Turquía",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "importDetalladas": {
+          "cutoff": "2023-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "congelada 12/2023; ambas puntas"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado"
+        },
+        "exportDetalladas": {
+          "cutoff": "2023-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "congelada 12/2023; ambas puntas"
+        }
+      }
+    },
+    "TW": {
+      "name_es": "Taiwán",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2017-03-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "archivo histórico, 9+ años"
+        },
+        "export": {
+          "cutoff": "2017-03-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "archivo histórico, 9+ años"
+        }
+      }
+    },
+    "UA": {
+      "name_es": "Ucrania",
+      "region": "europa",
+      "nomenclature": "UKTWED",
+      "reports": {
+        "import": {
+          "cutoff": "2024-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2022-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          },
+          "note": "exportaciones atrasadas ~2 años respecto de importaciones"
+        }
+      }
+    },
+    "UG": {
+      "name_es": "Uganda",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2024-09-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2024-09-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "US": {
+      "name_es": "Estados Unidos",
+      "region": "norteamerica",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "reporte estándar no relevado; la data de empresas está en Cargas Marítimas"
+        },
+        "export": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "cargasMaritimasIngresos": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          },
+          "note": "punto de entrada más rico para impo de EEUU; ojo con 'Incluir Masters' (doble conteo de un mismo embarque)"
+        },
+        "cargasMaritimasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "UY": {
+      "name_es": "Uruguay",
+      "region": "sudamerica",
+      "nomenclature": "Codigo NCM",
+      "reports": {
+        "import": {
+          "cutoff": "2026-09-01",
+          "columns_measured": 35,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          },
+          "note": "actualiza a diario: el mes en curso puede volver incompleto con filtros angostos. No trae CIF con ese nombre, trae U$S VNA; FOB, flete y seguro vienen sueltos"
+        },
+        "export": {
+          "cutoff": "2026-09-01",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": null
+          }
+        },
+        "transitos": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "mercadería en tránsito, tipo de registro distinto; solo UY"
+        },
+        "cargasMaritimas": {
+          "cutoff": "2024-07-11",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario (B/L)",
+            "counterparty": "Remitente"
+          }
+        },
+        "cargasAereas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado; manifiestos aéreos, solo UY"
+        },
+        "cargasTerrestres": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado; manifiestos terrestres, solo UY"
+        },
+        "normativa": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "regulaciones, no data de comercio exterior"
+        }
+      }
+    },
+    "UZ": {
+      "name_es": "Uzbekistán",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2025-12-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    },
+    "VE": {
+      "name_es": "Venezuela",
+      "region": "sudamerica",
+      "nomenclature": "NANDINA",
+      "reports": {
+        "import": {
+          "cutoff": "2024-08-31",
+          "columns_measured": 21,
+          "names": {
+            "local": "Importador",
+            "counterparty": null
+          },
+          "note": "congelada 08/2024"
+        },
+        "export": {
+          "cutoff": "2024-08-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": null
+          },
+          "note": "congelada 08/2024"
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "form Histórico no relevado"
+        },
+        "cargasIngresos": {
+          "cutoff": "2025-08-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Consignatario",
+            "counterparty": "Shipper"
+          }
+        },
+        "cargasSalidas": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "VN": {
+      "name_es": "Vietnam",
+      "region": "asia",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          },
+          "note": "mejor cubierto de Asia: importador, proveedor, ambos puertos y depósito (bonded warehouse)"
+        },
+        "export": {
+          "cutoff": "2026-06-30",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        },
+        "historicoImport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        },
+        "historicoExport": {
+          "cutoff": null,
+          "columns_measured": null,
+          "names": {
+            "local": "unknown",
+            "counterparty": "unknown"
+          },
+          "note": "no relevado"
+        }
+      }
+    },
+    "ZA": {
+      "name_es": "Sudáfrica",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporta en Rand (ZAR CIF), no dólares: única moneda así en el sistema"
+        },
+        "export": {
+          "cutoff": "2026-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": null,
+            "counterparty": null
+          },
+          "note": "reporta en Rand (ZAR)"
+        }
+      }
+    },
+    "ZW": {
+      "name_es": "Zimbabue",
+      "region": "africa",
+      "nomenclature": "Codigo SA",
+      "reports": {
+        "import": {
+          "cutoff": "2023-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Importador",
+            "counterparty": "Proveedor"
+          }
+        },
+        "export": {
+          "cutoff": "2023-07-31",
+          "columns_measured": null,
+          "names": {
+            "local": "Exportador",
+            "counterparty": "Comprador"
+          }
+        }
+      }
+    }
+  }
+}

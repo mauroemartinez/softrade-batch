@@ -480,6 +480,12 @@ Hay tres capas de relevamiento y no están igual de avanzadas. Vale la pena dist
 | **Empresas y vigencia** | Quién nombra al importador o al exportador, y hasta qué fecha llegan los datos | ✅ Completo, las dos direcciones, 78 países |
 | **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **20 reportes de muchos más** |
 
+Las dos primeras capas están además en un archivo legible por máquina,
+[`catalog.json`](skills/softrade-batch/references/catalog.json), y hay un chequeo
+automático (`preflight.py`) que **avisa antes de bajar nada** si tu consulta es
+imposible: un reporte que ese país no tiene, "las expo de mi empresa" en un país
+que no nombra exportadores, o un pedido de datos recientes a una base congelada.
+
 Los 20 medidos son las importaciones de los 19 países latinoamericanos más Cargas Marítimas de Brasil, todos con archivo descargado y contado. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
 
 Argentina además está verificada punta a punta en cuatro reportes: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
