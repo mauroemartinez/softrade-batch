@@ -117,6 +117,53 @@ Tell them apart in this order:
    Re-click Buscar by coordinate once. If it still does not move, treat it as
    genuinely empty and `skip` the job.
 
+### Identificador's suggestion panel overlaps the field below it
+
+Verified live 2026-09-03 on EC Exportaciones. When the **Identificador** field
+already has a value, its (empty) autocomplete suggestion dropdown renders
+directly on top of whatever field sits below it in the form, most often the
+tariff-code field (NANDINA/NCM/NCM-SIM). A coordinate click aimed at that field
+lands on the invisible overlay instead, and the following keystrokes go to
+Identificador, silently filtering by record ID rather than by tariff code. The
+result still returns instantly and looks like a normal, small result set, which
+makes this easy to miss.
+
+Never click the tariff-code field by coordinate when Identificador is
+non-empty. Instead: find the input by its position in
+`document.querySelectorAll('input')` (the two period datepickers come first,
+Identificador next, the tariff field right after), call `.focus()` on it from
+JS, verify `document.activeElement` is that element, and only then send
+keystrokes with `computer:type`. Clear a field by focusing it and sending
+`ctrl+a` then `Backspace` as real key events, not by clicking it, since a
+misdirected click can silently append to the wrong field instead of replacing
+its contents.
+
+### A daily-updated country can make the default period return nothing
+
+Most countries' default period is a month that closed weeks ago, so it is
+already fully loaded. Uruguay updates **daily** (header cutoff seen as
+`2/9/2026`, i.e. yesterday), so its default period is the **current, still
+accumulating** month. A narrow filter, such as a single 4-digit tariff
+heading, run against a month that is only 2-3 days old can come back with
+zero results purely for lack of volume, not because the data is missing.
+Softrade shows this identically to any other empty result: no message, still
+on the form or on an empty grid.
+
+For a country whose cutoff is within the last few days, prefer the most
+recently **closed** month over the pre-filled default when using a narrow
+filter, and only trust a "no data" reading if the same query also comes back
+empty against an older, known-good period.
+
+### A field's chip is not cleared by typing over it
+
+Distinct from the phantom-empty-chip bug below: **Volver** and re-entering a
+report both leave a previous chip-mode filter's value in place. Focusing the
+field and typing a new value does not replace the chip, it appends a second,
+disconnected value next to it (visually `8544 ⊗ 8544`), and it is not
+obvious afterward which value the search actually used. Always click the
+chip's own `⊗`/remove icon and verify `input.value === ""` before typing a
+replacement, never assume a fresh `.focus()` + keystrokes overwrites it.
+
 ### NCM-SIM is a p-autoComplete in chip mode
 
 Not `p-chips`, which is why a `p-chips` selector finds nothing. The real structure
