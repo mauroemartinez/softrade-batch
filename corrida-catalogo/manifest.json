@@ -2,7 +2,7 @@
   "version": 1,
   "label": "catalogo: una muestra por reporte",
   "created_at": "2026-09-02",
-  "download_dir": "C:\\Users\\desar\\OneDrive\\Documents\\softrade-batch\\corrida-catalogo\\downloads",
+  "download_dir": "downloads",
   "max_months": 1,
   "jobs": [
     {
