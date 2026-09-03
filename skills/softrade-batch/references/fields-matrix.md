@@ -119,5 +119,9 @@ en `coverage.md`. Los huecos más grandes, por si alguien pregunta:
   Ingresos/Salidas, Cargas Totales, Cargas Aéreas/Terrestres, Cargas Histórico,
   Zona Franca/Libre, Tránsitos, Totalizadas.
 
-Cuando se mida un reporte nuevo, **agregá su fila acá además de a `columns.md`**.
-Esta tabla es la que se consulta antes de prometerle un campo a alguien.
+El objetivo completo, reporte por reporte y en orden, vive en
+`corrida-catalogo/manifest.json` (112 jobs). `run_state.py next corrida-catalogo`
+da el próximo. Esta tabla queda para lo **medido**, no para el pendiente: cuando se
+mide un reporte nuevo, **se agrega su fila acá además de a `columns-*.md`**, y se
+tilda el job en el manifiesto. Esta tabla es la que se consulta antes de
+prometerle un campo a alguien.
