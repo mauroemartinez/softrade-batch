@@ -15,6 +15,13 @@ def check(run_dir):
         return e.code
 
 
+def split(run_dir, job):
+    try:
+        return run_state.main(["split", run_dir, "--job", str(job)])
+    except SystemExit as e:
+        return e.code
+
+
 class CheckManifest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
@@ -68,6 +75,14 @@ class CheckManifest(unittest.TestCase):
                       "date_from": "2026-08", "date_to": "2026-08", "status": "pending"}],
         })
         self.assertEqual(check(d), 1)
+
+    def test_split_deferred_date_exits_cleanly(self):
+        d = self._write("latest_split", {
+            "jobs": [{"country": "EC", "report": "cargasIngresos",
+                      "date_from": "latest", "date_to": "latest",
+                      "status": "pending", "attempts": 0}],
+        })
+        self.assertNotEqual(split(d, 0), 0)
 
 
 if __name__ == "__main__":

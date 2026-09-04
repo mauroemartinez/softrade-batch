@@ -241,6 +241,17 @@ def cmd_split(manifest, args):
     except ImportError:
         sys.exit("cannot import plan_run.py -- keep both scripts in the same directory")
 
+    date_from = str(job["date_from"]).strip().lower()
+    date_to = str(job["date_to"]).strip().lower()
+    if date_from in _DATE_PLACEHOLDERS or date_to in _DATE_PLACEHOLDERS:
+        sys.exit(
+            "job %d uses deferred dates (%s..%s), so it cannot be split by period yet.\n"
+            "Open the report, read the concrete loaded month from Softrade, then either\n"
+            "record that concrete YYYY-MM date on the job or narrow the query itself\n"
+            "(for example use a 6-digit heading instead of 4 digits)." % (
+                args.job, job["date_from"], job["date_to"])
+        )
+
     start, end = month_floor(job["date_from"]), month_floor(job["date_to"])
     span = month_index(end) - month_index(start) + 1
     max_months = args.max_months or 1
