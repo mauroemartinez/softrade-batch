@@ -91,9 +91,25 @@ def filters_key(filters):
     return tuple(sorted((k, tuple(v)) for k, v in (filters or {}).items()))
 
 
+def _canon(country, report):
+    """Canonical (COUNTRY, reportId), falling back to the raw values.
+
+    Manifests written before catalog.json existed, or with --skip-preflight,
+    hold the country and report exactly as typed. Comparing those raw against
+    canonical ids made re-planning the same run duplicate every job.
+    """
+    cc = (country or "").strip().upper()
+    if _catalog is not None:
+        try:
+            return cc, _catalog.resolve_report(_catalog.load(), report)
+        except Exception:
+            pass
+    return cc, report
+
+
 def job_key(job):
-    return (job["country"], job["report"], job["date_from"], job["date_to"],
-            filters_key(job.get("filters")))
+    cc, rid = _canon(job["country"], job["report"])
+    return (cc, rid, job["date_from"], job["date_to"], filters_key(job.get("filters")))
 
 
 def build_jobs(countries, reports, chunks, filters=None):
@@ -126,10 +142,39 @@ def build_jobs(countries, reports, chunks, filters=None):
 
 
 def _first_filter_name(filters):
-    for name in ("importador", "exportador", "proveedor"):
+    for name in ("importador", "exportador", "proveedor", "comprador"):
         if filters.get(name):
             return name
     return None
+
+
+# Which side of a report each company filter names. An import report's local
+# company is the importer and its foreign counterparty the supplier; an export
+# report's are the exporter and the buyer.
+_SIDE = {
+    "import": {"importador": "local", "proveedor": "counterparty"},
+    "export": {"exportador": "local", "comprador": "counterparty"},
+}
+
+
+def _direction_problems(filters, direction, tag):
+    """Company filters that make no sense for this report's direction."""
+    if direction not in _SIDE:          # both / n/a: the form decides
+        return []
+    ok = _SIDE[direction]
+    out = []
+    for name in ("importador", "exportador", "proveedor", "comprador"):
+        if filters.get(name) and name not in ok:
+            right = [k for k, v in ok.items() if v == _SIDE_OF[name]]
+            out.append("[%s] --%s no aplica a un reporte de %s%s"
+                       % (tag, name,
+                          "importaciones" if direction == "import" else "exportaciones",
+                          " (usá --%s)" % right[0] if right else ""))
+    return out
+
+
+_SIDE_OF = {"importador": "local", "exportador": "local",
+            "proveedor": "counterparty", "comprador": "counterparty"}
 
 
 def validate(countries, reports, filters, date_from, date_to, skip=False):
@@ -153,7 +198,7 @@ def validate(countries, reports, filters, date_from, date_to, skip=False):
         return [c.upper() for c in countries], reports, None, []
 
     by_company = _first_filter_name(filters)
-    want_counterparty = bool(filters.get("proveedor"))
+    want_counterparty = bool(filters.get("proveedor") or filters.get("comprador"))
     canon_countries, canon_reports, problems, warns = [], [], [], []
 
     for raw_c in countries:
@@ -168,9 +213,11 @@ def validate(countries, reports, filters, date_from, date_to, skip=False):
             if rid not in canon_reports:
                 canon_reports.append(rid)
 
+            tag = "%s/%s" % (cc, rid)
+            problems += _direction_problems(
+                filters, catalog["report_types"][rid]["direction"], tag)
             res = _preflight.evaluate(catalog, cc, rid, bool(by_company),
                                       date_from, date_to)
-            tag = "%s/%s" % (cc, rid)
             if res["verdict"] == "IMPOSSIBLE":
                 problems += ["[%s] %s" % (tag, m) for m in res["messages_es"]]
             elif res["verdict"] == "WARN":
@@ -182,8 +229,8 @@ def validate(countries, reports, filters, date_from, date_to, skip=False):
             # a --proveedor filter needs the report to actually name the counterparty
             if want_counterparty and not (e["names"]["counterparty"] and
                                           e["names"]["counterparty"] != "unknown"):
-                problems.append("[%s] pediste filtrar por --proveedor pero este "
-                                "reporte no nombra a la contraparte extranjera" % tag)
+                problems.append("[%s] pediste filtrar por la contraparte extranjera "
+                                "pero este reporte no la nombra" % tag)
 
     for w in warns:
         print("  aviso  %s" % w, file=sys.stderr)
@@ -221,7 +268,10 @@ def main(argv=None):
     f.add_argument("--importador", action="append", metavar="NAME",
                    help="entity name exactly as Softrade spells it")
     f.add_argument("--exportador", action="append", metavar="NAME")
-    f.add_argument("--proveedor", action="append", metavar="NAME")
+    f.add_argument("--proveedor", action="append", metavar="NAME",
+                   help="foreign supplier, on import reports")
+    f.add_argument("--comprador", action="append", metavar="NAME",
+                   help="foreign buyer, on export reports")
     f.add_argument("--ncm", action="append", metavar="CODE",
                    help="tariff code, whatever the country's nomenclature calls it")
     f.add_argument("--aduana", action="append", metavar="NAME")
@@ -232,7 +282,8 @@ def main(argv=None):
 
     filters = {k: v for k, v in (
         ("importador", args.importador), ("exportador", args.exportador),
-        ("proveedor", args.proveedor), ("ncm", args.ncm), ("aduana", args.aduana),
+        ("proveedor", args.proveedor), ("comprador", args.comprador),
+        ("ncm", args.ncm), ("aduana", args.aduana),
         ("pais_origen", args.pais_origen), ("marca", args.marca),
     ) if v}
 
@@ -240,7 +291,13 @@ def main(argv=None):
         args.country, args.report, filters, args.date_from, args.date_to,
         skip=args.skip_preflight)
 
-    chunks = split_range(month_floor(args.date_from), month_floor(args.date_to), args.max_months)
+    try:
+        chunks = split_range(month_floor(args.date_from), month_floor(args.date_to),
+                             args.max_months)
+    except ValueError as ex:
+        print("plan_run: período inválido (%s). Usá --from/--to YYYY-MM, con --from "
+              "anterior o igual a --to." % ex, file=sys.stderr)
+        sys.exit(2)
     fresh = build_jobs(countries, reports, chunks, filters)
 
     os.makedirs(args.out, exist_ok=True)

@@ -84,5 +84,46 @@ class Verdicts(unittest.TestCase):
         self.assertEqual(preflight._EXIT["IMPOSSIBLE"], 2)
 
 
+class Dates(unittest.TestCase):
+    def test_malformed_date_is_impossible_not_a_crash(self):
+        # A traceback exits 1, which a caller would read as WARN.
+        r = verdict("ar", "importaciones", date_from="2026")
+        self.assertEqual(r["verdict"], "IMPOSSIBLE")
+
+    def test_reversed_range_is_impossible(self):
+        r = verdict("ar", "importaciones", date_from="2026-07", date_to="2026-01")
+        self.assertEqual(r["verdict"], "IMPOSSIBLE")
+
+    def test_live_base_past_the_snapshot_warns_instead_of_refusing(self):
+        # The catalog is a snapshot; EC loads almost daily. Asking for a month
+        # after the stored cutoff must send the user to the form, not refuse.
+        r = verdict("ec", "importaciones", date_from="2026-09", date_to="2026-09")
+        self.assertEqual(r["verdict"], "WARN")
+        self.assertTrue(any("precargado" in m for m in r["messages_es"]))
+
+    def test_frozen_base_past_its_cutoff_is_still_impossible(self):
+        r = verdict("mx", "importaciones", date_from="2026-01", date_to="2026-01")
+        self.assertEqual(r["verdict"], "IMPOSSIBLE")
+
+    def test_daily_warning_ignores_a_range_that_never_reaches_the_last_month(self):
+        r = verdict("uy", "importaciones", date_from="2025-01", date_to="2025-06")
+        self.assertFalse(any("casi a diario" in m for m in r["messages_es"]))
+
+
+class Europe(unittest.TestCase):
+    def test_spain_own_import_report_gets_no_procedencia_warning(self):
+        # España's own Importaciones carries the real País de Origen.
+        r = verdict("es", "importaciones")
+        self.assertFalse(any("Procedencia" in m for m in r["messages_es"]))
+
+    def test_spain_totalizadas_is_eu_standard(self):
+        r = verdict("es", "importaciones totalizadas")
+        self.assertTrue(any("EUROS" in m for m in r["messages_es"]))
+
+    def test_eu_warning_is_said_once(self):
+        r = verdict("de", "importaciones")
+        self.assertEqual(sum("EUROS" in m.upper() and "FOB" in m for m in r["messages_es"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

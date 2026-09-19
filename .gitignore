@@ -39,3 +39,6 @@ $RECYCLE.BIN/
 
 # macOS, por si alguien clona desde ahi
 .DS_Store
+
+# Notas locales de desarrollo
+dev-notes/

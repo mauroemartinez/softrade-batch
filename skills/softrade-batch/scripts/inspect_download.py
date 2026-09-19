@@ -98,6 +98,17 @@ def count_records(frame):
         values = frame[ident].dropna()
         values = values[values != "No disponible"]
         if len(values):
+            # Mexico's Ordinal is the pedimento with the item number glued on:
+            # "06255386-0001". Counting those verbatim counts ROWS, not
+            # declarations, which inflates the record count and silently defeats
+            # truncation detection on the highest-volume country in the catalog.
+            # Strip the suffix, but only when the column really looks like that,
+            # so the other countries using Ordinal are left alone.
+            stripped = values.astype(str).str.strip()
+            compound = stripped.str.match(r"^\d+-\d+$")
+            if compound.mean() > 0.5:
+                base = stripped.str.split("-").str[0]
+                return int(base.nunique()), "distinct %s, item suffix stripped" % ident
             return int(values.nunique()), "distinct %s" % ident
 
     item = next((c for c in cols if str(c).strip().lower() == "item"), None)

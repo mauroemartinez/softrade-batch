@@ -13,14 +13,27 @@ This carves the 112 jobs by their `note` tag:
   chatgpt ->  B3 Export-side LatAm + B4 Asia/Africa + Pass C anonymous
               (standard import/export form, mechanical, volume-heavy)
 
-The original manifest is left untouched as the 112-job reference. Results from
-both sub-runs are reflected back into the reference and the markdown at the end.
+The original manifest is left untouched as the 112-job reference. Nothing
+here merges results back: copying the sub-runs' done/failed/skipped state into
+the master manifest (and the markdown) is a manual step at the end.
 
-Usage:  python tools/split_run.py
+Re-running refuses to overwrite a sub-manifest that already has progress (any
+job not "pending"), because that would wipe the sub-run's state. Pass --force
+only when that loss is intended.
+
+Usage:  python tools/split_run.py [--force]
 """
+import argparse
 import json
 import os
 import re
+import sys
+
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "corrida-catalogo", "manifest.json")
@@ -35,13 +48,43 @@ def side_of(note):
     return "chatgpt"  # B3, B4, Pass C
 
 
-def main():
+def _progress(path):
+    """Number of jobs not in "pending" in an existing sub-manifest (0 if absent)."""
+    if not os.path.exists(path):
+        return 0
+    with open(path, encoding="utf-8") as fh:
+        existing = json.load(fh)
+    return sum(1 for j in existing.get("jobs") or []
+               if not isinstance(j, dict) or j.get("status") != "pending")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--force", action="store_true",
+                    help="overwrite sub-manifests even if they already have progress")
+    args = ap.parse_args(argv)
+
     with open(SRC, encoding="utf-8") as fh:
         master = json.load(fh)
 
     buckets = {"claude": [], "chatgpt": []}
     for job in master["jobs"]:
         buckets[side_of(job.get("note"))].append(job)
+
+    # Check both sides before writing either, so a refusal leaves nothing half done.
+    if not args.force:
+        busy = []
+        for side in buckets:
+            path = os.path.join(ROOT, "corrida-catalogo", "split-" + side, "manifest.json")
+            n = _progress(path)
+            if n:
+                busy.append("%s (%d job(s) no pending)" % (os.path.relpath(path, ROOT), n))
+        if busy:
+            print("no sobrescribo sub-corridas con avance: %s.\n"
+                  "Eso borraría su estado. Volcá los resultados al manifiesto maestro a mano,\n"
+                  "o repetí con --force si de verdad querés descartarlos." % "; ".join(busy),
+                  file=sys.stderr)
+            return 1
 
     for side, jobs in buckets.items():
         out_dir = os.path.join(ROOT, "corrida-catalogo", "split-" + side)
@@ -65,7 +108,8 @@ def main():
         pend = sum(1 for j in jobs if j["status"] == "pending")
         print("%-8s %3d jobs  (%d done, %d pending)  -> %s"
               % (side, len(jobs), done, pend, os.path.relpath(path, ROOT)))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

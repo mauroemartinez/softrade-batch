@@ -5,12 +5,17 @@ known from the catalog. Update this file whenever a new report gets verified, se
 "Learning a new report type" in `SKILL.md`. Do not check a box from reading the
 form; check it only after `inspect_download.py` has run against a real export.
 
-**The operational checklist is `corrida-catalogo/manifest.json`** (112 jobs, one
-per country/report, in the Pass A→B→C order below). `run_state.py next
-corrida-catalogo` hands you the next box; `run_state.py check` validates it. This
-file is the *why* behind that order and the field notes per box; the manifest is
-the *state*. Keep them in step: when you measure a report, record it against the
-job and tick it here.
+**The run is tracked in two sub-manifests**, `corrida-catalogo/split-claude/` and
+`corrida-catalogo/split-chatgpt/`, carved by `tools/split_run.py` so two accounts
+can work in parallel. `run_state.py next corrida-catalogo/split-claude` (or
+`split-chatgpt`) hands you the next box of that half; `run_state.py check` on the
+same directory validates it. `split_run.py` refuses to overwrite a sub-manifest
+that already has progress unless you pass `--force`. The master
+`corrida-catalogo/manifest.json` (112 jobs, one per country/report, in the Pass
+A→B→C order below) is the reference, not the live checklist: sub-run results are
+merged back into it by hand at the end. This file is the *why* behind that order
+and the field notes per box; the sub-manifests are the *state*. Keep them in step:
+when you measure a report, record it against its sub-manifest job and tick it here.
 
 ## The three layers
 

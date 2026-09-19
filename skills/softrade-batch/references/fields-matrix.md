@@ -60,6 +60,29 @@ alguna salvedad, **no** no existe en ese reporte.
 
 **AR Exportaciones no tiene columna `Exportador`, ni vacía ni nada, no existe.** La variante Detalladas sí la trae, pero con `No disponible` en el 100% de las filas. Las dos son inútiles para atribuir a una empresa; la diferencia es que la Detallada parece que podría haber servido.
 
+#### Exportaciones con datos confirmados, columnas sin documentar
+
+Una corrida de cobertura del 2026-09-04 bajó estas muestras con la partida 8544 y
+registró filas y registros en `corrida-catalogo/manifest.json`, pero los Excel no se
+conservaron y nunca se inspeccionaron las columnas. Así que de estas bases sabemos
+**que están vivas y cuánto trae una partida chica**, pero no qué campos tienen. No
+llevan ✅ en ninguna columna hasta que alguien vuelva a bajar el archivo.
+
+| País | Reporte | Filas | Registros | Filas/reg | Qué se sabe |
+|---|---|---:|---:|---:|---|
+| **CR** | exportaciones | 1.893 | 359 | 5,27 | viva |
+| **EC** | exportaciones | 100 | 60 | 1,67 | viva; el formulario trae `Estado de Declaración` |
+| **NI** | expo detalladas | 454 | 454 | 1,00 | viva |
+| **PE** | exportaciones | 26 | 11 | 2,36 | viva |
+| **PY** | exportaciones | 23.613 | 384 | **61,49** | viva; nombres *Probable*; **ratio a verificar** |
+| **UY** | exportaciones | 12 | 12 | 1,00 | viva |
+| **VE** | exportaciones | 4 | 4 | 1,00 | **congelada** en 08/2024 |
+
+El 61,49 de Paraguay es sospechoso: el lado importador del mismo país da 7,07.
+Puede ser real (despachos de exportación con decenas de ítems) o puede ser que la
+clave `Despacho` no identifique la operación en el reporte de exportación. Hasta
+no ver el archivo, no usar ese número para detectar truncamiento en PY.
+
 ### Las ⚠️ , una por una
 
 - **PY Importador / Proveedor**: las columnas se llaman `Probable Importador` y
@@ -99,29 +122,36 @@ los dos con ese nombre.
 columnas; Costa Rica y Ecuador dan 48. México, la segunda economía de la región,
 da 29 columnas anónimas y congeladas en 2021.
 
-**Las cuatro bases anónimas** (GT, HN, PR, SV, más BR y MX en su forma
-Importaciones) solo contestan preguntas de producto, flujo y precio. Nunca
+**Las seis bases de importación anónimas** (GT, HN, PR, SV, y BR y MX en su
+forma Importaciones) solo contestan preguntas de producto, flujo y precio. Nunca
 preguntas de empresa. Para BR y MX hay que ir a Cargas.
 
 ## Lo que falta medir
 
-Esta matriz cubre **20 reportes**: las 19 importaciones latinoamericanas más
-Cargas Marítimas de Brasil. Falta todo lo demás, y el orden para completarlo está
-en `coverage.md`. Los huecos más grandes, por si alguien pregunta:
+Esta matriz tiene columnas medidas para **22 reportes**: las 19 importaciones
+latinoamericanas, Cargas Marítimas de Brasil y las dos exportaciones de Argentina.
+Otras 7 exportaciones (la tabla *Exportaciones con datos confirmados*) tienen filas
+y registros pero no columnas, así que no cuentan como medidas. Falta todo lo demás,
+y el orden para completarlo está en `coverage.md`. Los huecos más grandes, por si alguien pregunta:
 
 - **Todas las exportaciones salvo Argentina**, cuyos dos reportes ya están medidos
   y arriba. La columna `Comprador` (a quién le vende) está documentada en
   `entities-latam.md` como existente en 8 países, pero nunca se vio en un archivo.
 - **MX Cargas Totales**, que es la única data mexicana viva y con nombres.
 - **US Cargas Marítimas**, viva a julio 2026.
-- **Los 17 países de Asia y África que nombran empresas.** Cero columnas medidas.
+- **Los 16 países de Asia y África que nombran empresas** (10 de Asia, 6 de
+  África), y Ucrania, la única de Europa. Cero columnas medidas.
 - **Ocho familias enteras** que nunca se abrieron: Histórico, Cargas
   Ingresos/Salidas, Cargas Totales, Cargas Aéreas/Terrestres, Cargas Histórico,
   Zona Franca/Libre, Tránsitos, Totalizadas.
 
-El objetivo completo, reporte por reporte y en orden, vive en
-`corrida-catalogo/manifest.json` (112 jobs). `run_state.py next corrida-catalogo`
-da el próximo. Esta tabla queda para lo **medido**, no para el pendiente: cuando se
-mide un reporte nuevo, **se agrega su fila acá además de a `columns-*.md`**, y se
-tilda el job en el manifiesto. Esta tabla es la que se consulta antes de
+El objetivo completo, reporte por reporte y en orden, está en
+`corrida-catalogo/manifest.json` (112 jobs), pero ese manifiesto maestro es la
+referencia, no donde se avanza. La corrida se partió en dos sub-corridas,
+`corrida-catalogo/split-claude/` y `corrida-catalogo/split-chatgpt/`, y el trabajo
+se registra en sus manifiestos (`run_state.py next corrida-catalogo/split-claude`
+da el próximo de esa mitad). Los resultados se copian al maestro a mano al final.
+Esta tabla queda para lo **medido**, no para el pendiente: cuando se mide un
+reporte nuevo, **se agrega su fila acá además de a `columns-*.md`**, y se tilda el
+job en el sub-manifiesto que lo tenía. Esta tabla es la que se consulta antes de
 prometerle un campo a alguien.

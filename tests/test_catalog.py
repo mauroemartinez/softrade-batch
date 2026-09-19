@@ -88,5 +88,49 @@ class ResolveReport(unittest.TestCase):
         self.assertIn("no ofrece", str(ctx.exception))
 
 
+class AliasResolution(unittest.TestCase):
+    """A near miss must never resolve silently to a plausible, wrong report.
+    "exportación detallada" used to come back as plain `export` because it
+    contains the short alias "expo"."""
+
+    def setUp(self):
+        self.cat = _catalog.load()
+
+    def r(self, text):
+        return _catalog.resolve_report(self.cat, text)
+
+    def test_natural_variants_resolve_to_the_right_report(self):
+        cases = {
+            "exportación detallada": "exportDetalladas",
+            "importacion detallada": "importDetalladas",
+            "historico de importaciones": "historicoImport",
+            "historico cargas ingresos": "cargasHistoricoIngresos",
+            "cargas maritimas salida": "cargasMaritimasSalidas",
+        }
+        for text, rid in cases.items():
+            self.assertEqual(self.r(text), rid, text)
+
+    def test_ambiguous_text_asks_instead_of_guessing(self):
+        with self.assertRaises(_catalog.CatalogError) as cm:
+            self.r("cargas")
+        self.assertIn("Quisiste decir", str(cm.exception))
+
+    def test_no_two_reports_share_a_normalised_key(self):
+        seen = {}
+        for alias, rid in self.cat["report_aliases"].items():
+            seen.setdefault(_catalog._key(alias), set()).add(rid)
+        clashes = {k: v for k, v in seen.items() if len(v) > 1}
+        self.assertEqual(clashes, {})
+
+
+class VitalityThresholds(unittest.TestCase):
+    def test_catalog_thresholds_are_honoured(self):
+        import datetime as dt
+        e = {"cutoff": "2026-01-31"}
+        today = dt.date(2026, 7, 1)          # 6 months stale
+        self.assertEqual(_catalog.vitality(e, today)[0], "rezagada")
+        self.assertEqual(_catalog.vitality(e, today, {"viva": 6, "rezagada": 18})[0], "viva")
+
+
 if __name__ == "__main__":
     unittest.main()

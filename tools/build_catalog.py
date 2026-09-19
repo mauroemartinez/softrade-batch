@@ -164,7 +164,9 @@ C("BR", "Brasil", "sudamerica", "Codigo NCM", {
     "exportDetalladas":        R("2021-11-30", None, None, None, note="congelada 11/2021"),
     "cargasMaritimasIngresos": R("2023-11-30", 34, "Consignatario", "Shipper",
                                  note="manifiesto de embarque; trae dirección, email y teléfono de ambas partes: datos personales, no redistribuir"),
-    "cargasMaritimasSalidas":  R(None, None, "Consignatario", "Shipper", note="contraparte de Ingresos, no relevado"),
+    # Not surveyed. Ingresos names Consignatario / Shipper, but assuming Salidas
+    # does too would let a --by-company preflight pass on an unseen form.
+    "cargasMaritimasSalidas":  R(None, None, UNK, UNK, note="contraparte de Ingresos, no relevado"),
     "cargasHistoricoIngresos": R(None, None, UNK, UNK, note="no relevado"),
     "cargasHistoricoSalidas":  R(None, None, UNK, UNK, note="no relevado"),
 })
@@ -247,7 +249,7 @@ C("NI", "Nicaragua", "centroamerica", "SAC", {
     "importDetalladas": R("2026-07-31", 27, "Importador", "Proveedor"),
     "export":           R(None, None, UNK, UNK, note="reporte estándar no relevado"),
     "exportDetalladas": R("2026-07-31", None, "Exportador", "Comprador",
-                          note="muestra bajada 2026-08-04 (454 filas/454 registros); columnas aún sin documentar"),
+                          note="muestra bajada 2026-09-03 (454 filas/454 registros); columnas aún sin documentar"),
 })
 C("PA", "Panamá", "centroamerica", "SAC", {
     "import":                  R("2026-08-20", 30, "Importador", "Proveedor", note="tiene filtro Puerto"),
@@ -433,8 +435,11 @@ C("ES", "España", "europa", "Codigo NC", {
                           note="el 'Importaciones' de España es el específico del país: sin Identificador, con País de Origen real y dos aduanas. Más viejo que Totalizadas"),
     "importTotalizadas": R("2026-05-31", None, None, None,
                            note="pese al nombre, es el dataset UE estándar (euros, FOB, País de Procedencia); más nuevo que 'Importaciones'"),
-    "export":           R("2025-12-31", None, None, None, note="específico de España"),
-    "exportTotalizadas": R("2026-05-31", None, None, None, note="dataset UE estándar"),
+    # entities-world.md leaves both Spanish export cutoffs blank; do not copy the
+    # import dates across. Unknown cutoff -> preflight tells the user to read it
+    # off the form.
+    "export":           R(None, None, None, None, note="específico de España; vigencia no relevada"),
+    "exportTotalizadas": R(None, None, None, None, note="dataset UE estándar; vigencia no relevada"),
 })
 for _code in EU_NC:
     C(_code, EU_NAME[_code], "europa", "Codigo NC", {

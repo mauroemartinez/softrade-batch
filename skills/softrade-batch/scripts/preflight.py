@@ -41,10 +41,16 @@ _EXIT = {OK: 0, WARN: 1, IMPOSSIBLE: 2}
 
 
 def _ym(value):
-    """YYYY-MM or YYYY-MM-DD -> date on the first of that month."""
+    """YYYY-MM or YYYY-MM-DD -> date on the first of that month.
+
+    Raises ValueError on anything else, so a caller can report it instead of
+    crashing: an uncaught traceback exits 1, which reads as WARN.
+    """
     if not value:
         return None
-    p = value.split("-")
+    p = str(value).strip().split("-")
+    if len(p) < 2 or not (p[0].isdigit() and p[1].isdigit()) or len(p[0]) != 4:
+        raise ValueError("fecha inválida %r: usá YYYY-MM" % value)
     return dt.date(int(p[0]), int(p[1]), 1)
 
 
@@ -88,7 +94,8 @@ def evaluate(catalog, country, report, by_company=False,
         return out
 
     # --- vitality ---------------------------------------------------------------
-    vit, months = _catalog.vitality(e, today=today)
+    thresholds = catalog["meta"].get("vitality_thresholds_months")
+    vit, months = _catalog.vitality(e, today=today, thresholds=thresholds)
     out["vitality"] = vit
     cutoff_d = _catalog.parse_iso(e.get("cutoff"))
     if vit == "congelada":
@@ -102,24 +109,55 @@ def evaluate(catalog, country, report, by_company=False,
         say(WARN, "La vigencia de %s / %s no está relevada: confirmá contra el cabezal "
                   "azul del sitio hasta qué fecha hay datos." % (cc, rt["label_es"]))
 
-    # daily-updated country: the pre-filled month is still accumulating
-    if cutoff_d and (today - cutoff_d).days <= 10:
-        say(WARN, "%s actualiza casi a diario (último dato %s). El mes en curso todavía "
-                  "se está cargando y una consulta con filtro angosto puede volver "
-                  "incompleta; preferí el último mes cerrado."
-                  % (cc, _fmt_month(cutoff_d)))
+    # --- date range -------------------------------------------------------------
+    try:
+        d_from, d_to = _ym(date_from), _ym(date_to)
+    except ValueError as ex:
+        say(IMPOSSIBLE, str(ex))
+        return out
+    if d_from and d_to and d_from > d_to:
+        say(IMPOSSIBLE, "El período está al revés: desde %s es posterior a hasta %s."
+            % (_fmt_month(d_from), _fmt_month(d_to)))
+        return out
 
-    # --- date range vs cutoff ------------------------------------------------
-    d_from, d_to = _ym(date_from), _ym(date_to)
+    # The cutoffs are a snapshot taken on meta.captured, and they age: a base that
+    # updates daily has newer data than the catalog says within days. Judge "is
+    # this base alive" against the snapshot date, not against today, and trust the
+    # period the Softrade form pre-fills over any stored cutoff.
+    captured = _catalog.parse_iso(catalog["meta"].get("captured")) or today
+    frozen_at_capture = _catalog.vitality(e, today=captured,
+                                          thresholds=thresholds)[0] == "congelada"
+    # A week, not ten days: at capture UY was 1 day behind (and its note says it
+    # loads daily) while EC was 10 behind and PE 11, which load monthly-ish.
+    daily = bool(cutoff_d) and (captured - cutoff_d).days <= 7
+
     if cutoff_d:
         cutoff_month = dt.date(cutoff_d.year, cutoff_d.month, 1)
         if d_from and d_from > cutoff_month:
-            say(IMPOSSIBLE, "Pedís desde %s pero %s / %s sólo tiene datos hasta %s."
-                % (_fmt_month(d_from), cc, rt["label_es"], _fmt_month(cutoff_d)))
+            if frozen_at_capture:
+                say(IMPOSSIBLE, "Pedís desde %s pero %s / %s está congelada: sólo tiene "
+                                "datos hasta %s." % (_fmt_month(d_from), cc,
+                                                    rt["label_es"], _fmt_month(cutoff_d)))
+            else:
+                say(WARN, "Pedís desde %s y el catálogo (relevado el %s) registra datos "
+                          "de %s / %s hasta %s. Probablemente ya haya más: abrí el "
+                          "formulario y mirá el período que trae precargado, que es el "
+                          "máximo real, antes de planificar."
+                          % (_fmt_month(d_from), captured.isoformat(), cc,
+                             rt["label_es"], _fmt_month(cutoff_d)))
         elif d_to and d_to > cutoff_month:
             out["effective_to"] = _fmt_month(cutoff_month)
-            say(WARN, "%s / %s llega hasta %s; aunque pidas hasta %s vas a recibir sólo "
-                      "hasta ahí." % (cc, rt["label_es"], _fmt_month(cutoff_d), _fmt_month(d_to)))
+            say(WARN, "%s / %s llega hasta %s según el catálogo; aunque pidas hasta %s "
+                      "puede que recibas sólo hasta ahí. El período precargado en el "
+                      "formulario dice el máximo real."
+                      % (cc, rt["label_es"], _fmt_month(cutoff_d), _fmt_month(d_to)))
+
+    # daily-updated base: the newest month is still being loaded. Only relevant
+    # when the request reaches that month, or names no period at all.
+    if daily and (d_to is None or d_to >= dt.date(cutoff_d.year, cutoff_d.month, 1)):
+        say(WARN, "%s actualiza casi a diario. El último mes todavía se está cargando y "
+                  "una consulta con filtro angosto puede volver incompleta; preferí el "
+                  "último mes cerrado." % cc)
 
     # --- company attribution ----------------------------------------------------
     local = e["names"]["local"]
@@ -156,13 +194,20 @@ def evaluate(catalog, country, report, by_company=False,
             out["messages_es"].append(msg)
 
     # --- nomenclature + euros trap -----------------------------------------
-    if ct["nomenclature"] == "Codigo NC":  # the EU block, incl. España
+    # The EU-standard dataset. España's own Importaciones / Exportaciones are the
+    # exception: country-specific, with the real País de Origen. Its Totalizadas
+    # reports are the EU-standard ones despite the name.
+    eu_standard = ct["nomenclature"] == "Codigo NC" and not (
+        cc == "ES" and rid in ("import", "export"))
+    if eu_standard:
         say(WARN, "Europa (Codigo NC): los valores vienen en EUROS y son FOB, no USD CIF, "
                   "y el filtro de país es 'País de Procedencia', no de origen. No lo "
                   "mezcles con datos de otras regiones.")
 
-    if e.get("note") and e["note"] not in out["messages_es"]:
-        out["messages_es"].append("Nota: " + e["note"])
+    note = e.get("note")
+    # the catalog note of an EU entry repeats the warning above; say it once
+    if note and note not in out["messages_es"] and not (eu_standard and "EUROS" in note):
+        out["messages_es"].append("Nota: " + note)
 
     if out["verdict"] == OK:
         out["messages_es"].insert(0, "Consulta válida y con datos vigentes.")

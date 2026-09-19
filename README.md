@@ -77,6 +77,14 @@ Cuatro cosas. Dos son gratis.
 | **Python 3** | Para los chequeos de los archivos | Gratis |
 | **Tu cuenta de Softrade** | Los datos | Tu suscripción |
 
+### Esto no te factura aparte
+
+Corre dentro de tu suscripción de Claude, **no gasta tokens pagos por separado**. No hay que cargar una tarjeta ni contratar API.
+
+La única excepción: si tenés los **créditos de uso activados** y agotaste lo que te toca en la sesión, a partir de ahí sí empieza a consumirlos. Si no los activaste, simplemente esperás a que se reponga el límite y seguís.
+
+Vale aclararlo porque una corrida larga de Softrade da la sensación de estar quemando plata, y no es el caso.
+
 ### La extensión de Chrome es obligatoria
 
 Softrade guarda la sesión **por pestaña**. No alcanza con que estés logueado en otra ventana: hay que estar logueado **en la pestaña que la herramienta abre**. Por eso necesita manejar tu Chrome de verdad, no un navegador aparte.
@@ -478,7 +486,7 @@ Hay tres capas de relevamiento y no están igual de avanzadas. Vale la pena dist
 |---|---|---|
 | **Catálogo** | Qué reportes ofrece cada país | ✅ Completo, 78 países |
 | **Empresas y vigencia** | Quién nombra al importador o al exportador, y hasta qué fecha llegan los datos | ✅ Completo, las dos direcciones, 78 países |
-| **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **20 reportes de muchos más** |
+| **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **22 reportes de muchos más** |
 
 Las dos primeras capas están además en un archivo legible por máquina,
 [`catalog.json`](skills/softrade-batch/references/catalog.json), y hay un chequeo
@@ -486,13 +494,25 @@ automático (`preflight.py`) que **avisa antes de bajar nada** si tu consulta es
 imposible: un reporte que ese país no tiene, "las expo de mi empresa" en un país
 que no nombra exportadores, o un pedido de datos recientes a una base congelada.
 
-Los 20 medidos son las importaciones de los 19 países latinoamericanos más Cargas Marítimas de Brasil, todos con archivo descargado y contado. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
+Los 22 medidos son las importaciones de los 19 países latinoamericanos, Cargas Marítimas de Brasil y las dos exportaciones de Argentina, todos con archivo descargado y contado. De otras siete exportaciones (Costa Rica, Ecuador, Nicaragua, Perú, Paraguay, Uruguay y Venezuela) se sabe que tienen datos y cuántas filas trae una partida chica, pero sus columnas todavía no se inspeccionaron. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
 
 Argentina además está verificada punta a punta en cuatro reportes: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
 
-**Lo más grande que falta:** todo el lado exportador salvo Argentina, los 17 países de Asia y África que sí nombran empresas, y **8 de las 14 familias de reporte que nunca se abrieron**: Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
+**Lo más grande que falta:** las columnas de todo el lado exportador salvo Argentina, los 16 países de Asia y África que sí nombran empresas (más Ucrania), y **8 de las 14 familias de reporte que nunca se abrieron**: Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
 
 El orden para completarlo, con el país más barato elegido para cada familia, está en [`coverage.md`](skills/softrade-batch/references/coverage.md). El flujo es igual en todos, así que extenderlo es sobre todo cuestión de usarlo y documentar.
+
+### Tests
+
+71 tests. Desde la raíz del repo:
+
+```bash
+python -m unittest discover -s tests -b
+```
+
+No piden nada que la skill no pida ya (`pandas` y `openpyxl`). El detalle de qué cubre cada archivo está en [`tests/README.md`](tests/README.md).
+
+Cada test corresponde a un bug que pasó de verdad o a algo que `SKILL.md` promete por escrito: que un pedido de 12 meses sea **una** consulta y no doce, que partir un período no ensanche la consulta perdiendo el filtro de empresa, que un trabajo fallido no se reintente antes que los pendientes, y que el `Ordinal` mexicano, que trae el ítem pegado al pedimento, no infle el conteo de operaciones.
 
 ### Se aceptan aportes
 

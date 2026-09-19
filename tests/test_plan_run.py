@@ -94,5 +94,110 @@ class PlanRunValidation(unittest.TestCase):
         self.assertEqual(status, "ok")
 
 
+class SplitRange(unittest.TestCase):
+    """Softrade refuses queries over 12 months; never emit an illegal job, and never
+    split more than necessary (one period that fits = one consolidated Excel)."""
+
+    def test_seven_months_is_one_job(self):
+        c = plan_run.split_range((2026, 1), (2026, 7), 12)
+        self.assertEqual([(x["date_from"], x["date_to"]) for x in c],
+                         [("2026-01-01", "2026-07-31")])
+
+    def test_twelve_is_one_and_thirteen_is_two(self):
+        self.assertEqual(len(plan_run.split_range((2026, 1), (2026, 12), 12)), 1)
+        self.assertEqual(len(plan_run.split_range((2025, 1), (2026, 1), 12)), 2)
+
+    def test_month_ends(self):
+        one = lambda y, m: plan_run.split_range((y, m), (y, m), 1)[0]["date_to"]
+        self.assertEqual(one(2026, 2), "2026-02-28")
+        self.assertEqual(one(2028, 2), "2028-02-29")   # leap year
+        self.assertEqual(one(2026, 4), "2026-04-30")
+        self.assertEqual(one(2026, 12), "2026-12-31")
+
+    def test_bad_ranges_are_rejected(self):
+        with self.assertRaises(ValueError):
+            plan_run.split_range((2026, 7), (2026, 1), 12)
+        with self.assertRaises(ValueError):
+            plan_run.split_range((2026, 1), (2026, 7), 0)
+
+
+class Filters(unittest.TestCase):
+    """Filters are half the query: a manifest without them cannot be reproduced
+    once the chat that confirmed the company is gone."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+
+    def plan(self, *extra):
+        out = os.path.join(self.tmp, "run")
+        status, code = run(["--out", out, "--country", "ar",
+                            "--report", "imports_detailed",
+                            "--from", "2026-01", "--to", "2026-07"] + list(extra))
+        self.assertEqual(status, "ok", code)
+        with open(os.path.join(out, "manifest.json"), encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_no_filters_is_an_empty_dict(self):
+        self.assertEqual(self.plan()["jobs"][0]["filters"], {})
+
+    def test_repeated_flag_accumulates(self):
+        f = self.plan("--ncm", "8544", "--ncm", "8536")["jobs"][0]["filters"]
+        self.assertEqual(f["ncm"], ["8544", "8536"])
+
+    def test_other_company_same_period_is_a_new_job(self):
+        self.plan("--importador", "EMPRESA A")
+        self.assertEqual(len(self.plan("--importador", "EMPRESA B")["jobs"]), 2)
+
+    def test_replanning_the_same_query_adds_nothing(self):
+        self.plan("--importador", "EMPRESA A")
+        self.assertEqual(len(self.plan("--importador", "EMPRESA A")["jobs"]), 1)
+
+
+class CompanyFilterDirection(unittest.TestCase):
+    """Each company filter names one side of one kind of report."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+
+    def plan(self, country, report, *extra):
+        import contextlib, io as _io
+        with contextlib.redirect_stderr(_io.StringIO()),                 contextlib.redirect_stdout(_io.StringIO()):
+            return run(["--out", os.path.join(self.tmp, "r"), "--country", country,
+                        "--report", report, "--from", "2026-01", "--to", "2026-07"]
+                       + list(extra))
+
+    def test_exportador_on_an_import_report_is_rejected(self):
+        self.assertEqual(self.plan("ar", "import", "--exportador", "ACME SA"), ("exit", 2))
+
+    def test_proveedor_on_an_export_report_is_rejected(self):
+        self.assertEqual(self.plan("py", "export", "--proveedor", "X"), ("exit", 2))
+
+    def test_comprador_on_an_export_report_that_names_buyers_is_fine(self):
+        self.assertEqual(self.plan("ec", "export", "--comprador", "BUYER")[0], "ok")
+
+
+class ExtendingOldManifests(unittest.TestCase):
+    """Re-planning a run built before catalog.json existed must not duplicate it."""
+
+    def test_raw_country_and_report_match_their_canonical_form(self):
+        tmp = tempfile.mkdtemp()
+        out = os.path.join(tmp, "r")
+        os.makedirs(out)
+        legacy = {"version": 1, "download_dir": os.path.join(out, "downloads"),
+                  "jobs": [{"country": "ar", "report": "imports_detailed",
+                            "date_from": "2026-01-01", "date_to": "2026-07-31",
+                            "filters": {}, "status": "done", "file": "a.xlsx",
+                            "rows": 1, "records": 1, "attempts": 0, "note": None,
+                            "updated_at": None}]}
+        with open(os.path.join(out, "manifest.json"), "w", encoding="utf-8") as fh:
+            json.dump(legacy, fh)
+        import contextlib, io as _io
+        with contextlib.redirect_stderr(_io.StringIO()),                 contextlib.redirect_stdout(_io.StringIO()):
+            run(["--out", out, "--country", "ar", "--report", "importDetalladas",
+                 "--from", "2026-01", "--to", "2026-07"])
+        with open(os.path.join(out, "manifest.json"), encoding="utf-8") as fh:
+            self.assertEqual(len(json.load(fh)["jobs"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
