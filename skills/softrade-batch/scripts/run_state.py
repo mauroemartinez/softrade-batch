@@ -318,17 +318,55 @@ _DATE_PLACEHOLDERS = {"latest", "ultimo mes cargado", "último mes cargado",
                       "ultimo mes cerrado", "último mes cerrado"}
 
 
+# Softrade refuses a query wider than this, so a job spanning more is dead on
+# arrival no matter how the browser step fills the form.
+_MAX_SPAN_MONTHS = 12
+
+
 def _load_catalog():
+    """(catalog, error). catalog is None with no error only when _catalog.py is
+    absent, i.e. the scripts were copied without the query engine. A catalog
+    that exists but does not load is an error, not a reason to skip validation.
+    """
     here = os.path.dirname(os.path.abspath(__file__))
-    for cand in (os.path.join(here, "_catalog.py"),):
-        if os.path.exists(cand):
-            sys.path.insert(0, here)
-            try:
-                import _catalog
-                return _catalog.load()
-            except Exception:
-                return None
-    return None
+    if not os.path.exists(os.path.join(here, "_catalog.py")):
+        return None, None
+    sys.path.insert(0, here)
+    try:
+        import _catalog
+        return _catalog.load(), None
+    except Exception as e:
+        return None, "%s: %s" % (type(e).__name__, e)
+
+
+def _parse_date(s):
+    """YYYY-MM or YYYY-MM-DD -> (year, month), or None if not a real date."""
+    m = re.match(r"^(\d{4})-(\d{2})(?:-(\d{2}))?$", s)
+    if not m:
+        return None
+    try:
+        datetime(int(m.group(1)), int(m.group(2)), int(m.group(3) or 1))
+    except ValueError:
+        return None
+    return int(m.group(1)), int(m.group(2))
+
+
+def _check_report(args, jobs, problems, warnings):
+    ok = not problems
+    if getattr(args, "json", False):
+        print(json.dumps({"ok": ok, "jobs": jobs, "problems": problems,
+                          "warnings": warnings}, ensure_ascii=False, indent=2))
+        return 0 if ok else 1
+    for w in warnings:
+        print("  aviso  %s" % w)
+    if problems:
+        print("\ncheck: %d problema(s):" % len(problems))
+        for p in problems:
+            print("  - %s" % p)
+        return 1
+    print("check: %d jobs, sin problemas%s" % (
+        jobs, " (%d avisos)" % len(warnings) if warnings else ""))
+    return 0
 
 
 def cmd_check(manifest, args):
@@ -336,21 +374,34 @@ def cmd_check(manifest, args):
 
     Catches the mistakes that a hand-built or machine-generated manifest tends to
     have: a report id that is not canonical, a country the catalog does not know,
-    a `done` job with no file, a bad status. Read-only. Exits 1 if anything is
-    wrong so it can gate a review.
+    a `done` job with no file, a bad status, impossible or reversed dates, a
+    period wider than Softrade accepts, duplicated jobs, a `split` job with no
+    children. Read-only. Exits 1 if anything is wrong so it can gate a review.
     """
-    catalog = _load_catalog()
+    problems, warnings = [], []
+    catalog, cat_err = _load_catalog()
+    if cat_err:
+        problems.append("catalog.json no cargó (%s): no puedo validar país/reporte" % cat_err)
+        return _check_report(args, 0, problems, warnings)
     report_ids = set(catalog["report_types"]) if catalog else None
     countries = catalog["countries"] if catalog else None
 
-    problems, warnings = [], []
     jobs = manifest.get("jobs")
     if not isinstance(jobs, list) or not jobs:
-        print("check: el manifiesto no tiene jobs")
-        return 1
+        problems.append("el manifiesto no tiene jobs")
+        return _check_report(args, 0, problems, warnings)
+
+    seen = {}
+    children = set()
+    for j in jobs:
+        if isinstance(j, dict) and isinstance(j.get("split_from"), int):
+            children.add(j["split_from"])
 
     for i, j in enumerate(jobs):
         tag = "job %d" % i
+        if not isinstance(j, dict):
+            problems.append("%s: no es un objeto (%s)" % (tag, type(j).__name__))
+            continue
         for key in ("country", "report", "date_from", "date_to", "status"):
             if key not in j:
                 problems.append("%s: falta el campo '%s'" % (tag, key))
@@ -367,18 +418,49 @@ def cmd_check(manifest, args):
                 problems.append("%s: país %r no está en catalog.json" % (tag, cc))
             elif rid not in countries[cc]["reports"]:
                 problems.append("%s: %s no ofrece %r" % (tag, cc, rid))
+
+        parsed = []
         for d in (j.get("date_from"), j.get("date_to")):
             s = str(d or "")
             if s.lower() in _DATE_PLACEHOLDERS:
+                parsed.append(None)
                 continue
-            if not re.match(r"^\d{4}-\d{2}(-\d{2})?$", s):
-                warnings.append("%s: fecha %r no es YYYY-MM ni un placeholder conocido" % (tag, d))
+            ym = _parse_date(s)
+            if ym is None:
+                problems.append("%s: fecha %r no es una fecha YYYY-MM[-DD] real ni un placeholder conocido" % (tag, d))
+            parsed.append(ym)
+        if parsed[0] and parsed[1]:
+            # both are real YYYY-MM[-DD] here, so string order is date order
+            if str(j["date_from"]) > str(j["date_to"]):
+                problems.append("%s: date_from %s es posterior a date_to %s" % (
+                    tag, j["date_from"], j["date_to"]))
+            else:
+                span = (parsed[1][0] - parsed[0][0]) * 12 + parsed[1][1] - parsed[0][1] + 1
+                if span > _MAX_SPAN_MONTHS:
+                    problems.append("%s: abarca %d meses (%s..%s); Softrade no acepta más de %d" % (
+                        tag, span, j["date_from"], j["date_to"], _MAX_SPAN_MONTHS))
+
+        key = (cc, rid, str(j.get("date_from")), str(j.get("date_to")),
+               json.dumps(j.get("filters") or {}, sort_keys=True, ensure_ascii=False))
+        if key in seen:
+            problems.append("%s: duplicado del job %d (mismo país, reporte, fechas y filtros)" % (
+                tag, seen[key]))
+        else:
+            seen[key] = i
+
+        if st == "split" and i not in children:
+            problems.append("%s: status split pero ningún job tiene split_from %d" % (tag, i))
         if st == "done":
             if not j.get("file"):
                 problems.append("%s: done pero sin 'file'" % tag)
             if j.get("rows") is None:
                 warnings.append("%s: done sin conteo de filas (usá inspect_download.py --record)" % tag)
-        if int(j.get("attempts", 0) or 0) < 0:
+        att = j.get("attempts", 0)
+        if att is None:
+            att = 0
+        if isinstance(att, bool) or not isinstance(att, int):
+            problems.append("%s: attempts %r no es un entero" % (tag, att))
+        elif att < 0:
             problems.append("%s: attempts negativo" % tag)
 
     cv = manifest.get("catalog_version")
@@ -386,18 +468,9 @@ def cmd_check(manifest, args):
         warnings.append("catalog_version del manifiesto (%s) != catalog.json (%s)" % (
             cv, catalog["meta"]["captured"]))
     if catalog is None:
-        warnings.append("catalog.json no disponible: no validé país/reporte")
+        warnings.append("_catalog.py no está junto a este script: no validé país/reporte")
 
-    for w in warnings:
-        print("  aviso  %s" % w)
-    if problems:
-        print("\ncheck: %d problema(s):" % len(problems))
-        for p in problems:
-            print("  - %s" % p)
-        return 1
-    print("check: %d jobs, sin problemas%s" % (
-        len(jobs), " (%d avisos)" % len(warnings) if warnings else ""))
-    return 0
+    return _check_report(args, len(jobs), problems, warnings)
 
 
 COMMANDS = {
@@ -423,7 +496,7 @@ def main(argv=None):
     ap.add_argument("--max-months", type=int, help="months per sub-job for `split` (default 1)")
     ap.add_argument("--note", help="free-text note")
     ap.add_argument("--json", action="store_true",
-                    help="machine-readable output for `next` and `status`")
+                    help="machine-readable output for `next`, `status` and `check`")
     args = ap.parse_args(argv)
 
     handler, writes = COMMANDS[args.command]

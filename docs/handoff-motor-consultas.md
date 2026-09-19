@@ -42,7 +42,7 @@ Estas dos reglas ya están implementadas. La Parte 1 no las reimplementa: las
 |---|---|---|---|
 | Qué es | Convertir un pedido en un plan validado, sin abrir el navegador | Scaffolding de la capa 3: reorganizar el manifiesto, esqueletos de `columns-*.md`, expandir matriz y checklist, receta de medición | Correr las sesiones reales de Softrade y llenar los huecos que dejó la Parte 2 |
 | Necesita navegador | No | No | Sí |
-| Entregables | `catalog.json`, `preflight.py`, validación en `plan_run.py`, `next --json`, tests | `corrida-catalogo/manifest.json` v2, `columns-cargas.md`, `columns-world.md`, `columns-otras-familias.md`, `fields-matrix.md` expandida, `coverage.md` alineado, `docs/receta-medicion.md` | mediciones → `columns-*.md`, `fields-matrix.md`, `coverage.md`, `catalog.json` |
+| Entregables | `catalog.json`, `preflight.py`, validación en `plan_run.py`, `next --json`, tests | `corrida-catalogo/manifest.json` reorganizado (el formato sigue siendo `"version": 1`), `columns-cargas.md`, `columns-world.md`, `columns-otras-familias.md`, `fields-matrix.md` expandida, `coverage.md` alineado, `docs/receta-medicion.md` | mediciones → `columns-*.md`, `fields-matrix.md`, `coverage.md`, `catalog.json` |
 
 **La costura entre las partes es la lista canónica de `report_types` de abajo.**
 El prompt completo de la Parte 2 está en `docs/prompt-chatgpt-cobertura.md`.
@@ -210,9 +210,12 @@ por empresa   IMPOSIBLE   AR no publica el exportador: no hay columna ni filtro.
 veredicto     IMPOSIBLE
 ```
 
-Salida `--json`: `{ "country", "report", "report_alias_in", "vitality",
-"cutoff", "by_company", "verdict", "warnings": [...], "messages_es": [...] }`.
-`messages_es` son las frases exactas para que la IA se las repita al usuario.
+Salida `--json`: `{ "country", "country_name", "report", "report_label",
+"report_alias_in", "nomenclature", "cutoff", "vitality", "columns_measured",
+"by_company", "company_side", "date_from", "date_to", "effective_to", "verdict",
+"messages_es": [...] }`. No hay clave `warnings`: los avisos van en `messages_es`,
+y `verdict` dice si alguno es WARN o IMPOSSIBLE. `messages_es` son las frases
+exactas para que la IA se las repita al usuario.
 
 **Exit codes:** `0` OK, `1` WARN (se puede, con salvedades), `2` IMPOSIBLE.
 
@@ -223,9 +226,11 @@ Casos que tienen que dar WARN o IMPOSIBLE (todos ya documentados en los md):
 | reporte no ofrecido por el país | IMPOSIBLE | "CL no tiene Importaciones Detalladas; el estándar es lo máximo" |
 | `--by-company` y `names.local` nulo | IMPOSIBLE | según país |
 | `names.local` inferido (PY, AR expo det) | WARN | "Paraguay dice 'Probable': es inferido, no un registro oficial" |
-| base congelada (>18 meses) | WARN o IMPOSIBLE si el rango es todo posterior | "MX Importaciones está congelada en 11/2021" |
-| país que actualiza a diario (UY, EC…) y rango incluye el mes en curso | WARN | "el mes en curso todavía está cargándose; puede volver incompleto" |
-| Europa (excepto ES/UA) | WARN | "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no origen" |
+| base congelada (>18 meses) | WARN; IMPOSIBLE si el rango es todo posterior al corte y la base ya estaba congelada en `meta.captured` | "MX Importaciones está congelada en 11/2021" |
+| rango todo posterior al corte de una base viva | WARN | "el catálogo es una foto del 2026-09-02: abrí el formulario y mirá el período precargado, que es el máximo real" |
+| fechas mal formadas o rango al revés | IMPOSIBLE | "el período está al revés" |
+| corte a 7 días o menos de `meta.captured` (UY) y el rango llega a ese último mes, o no hay rango | WARN | "actualiza casi a diario; el último mes todavía se está cargando, preferí el último mes cerrado" |
+| Europa (Codigo NC), salvo Importaciones/Exportaciones de España (traen País de Origen real); ES Totalizadas sí avisa | WARN | "valores en EUROS y FOB, no USD CIF; filtra por País de Procedencia, no origen" |
 | `normativa` | IMPOSIBLE | "no es data de comercio exterior" |
 
 ### Entregable C — validación en `scripts/plan_run.py`
@@ -243,6 +248,9 @@ está bien):
    país/reporte; `--proveedor` si no hay `counterparty`.
 5. **Advertir** (no frenar) si `[--from,--to]` cae entero después del `cutoff`, o si
    la base está congelada. El usuario puede querer histórico igual.
+   *Como quedó:* así es para bases vivas (el corte del catálogo envejece y el
+   formulario manda). Si la base ya estaba congelada al relevar el catálogo y el
+   rango entero cae después del corte, se rechaza: no hay nada que bajar.
 6. Guardar en el manifest `"catalog_version": meta.captured` y el id canónico del
    reporte en cada job.
 7. Que `plan_run.py` corra `preflight` internamente y pegue sus `messages_es` en un
@@ -285,7 +293,8 @@ No cambiar el formato humano.
       12 meses quedó igual. `catalog_version` e id canónico en el manifiesto.
       `--skip-preflight` para saltear.
 - [x] `run_state.py next --json` y `status --json`; el formato humano intacto.
-- [x] `python -m unittest discover -s tests` → 34 tests OK.
+- [x] `python -m unittest discover -s tests` → 34 tests OK al cierre; hoy son 101
+      (`python -m unittest discover -s tests -b`).
 - [x] Ni una línea tocada en `site-flow.md`, `cargas.md`, ni en el manejo del navegador.
 
 Módulo compartido nuevo: `scripts/_catalog.py` (carga, resolución de alias,

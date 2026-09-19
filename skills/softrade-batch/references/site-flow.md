@@ -224,6 +224,11 @@ degrading after the first successful query.
 exhausted (Softrade shows consumption nowhere, so this is invisible), or the server
 throttles after a burst of queries.
 
+**Later corroboration.** A separate coverage run on 2026-09-04 queried EC
+Exportaciones with partida 8544 and got **100 rows, 60 records**. On 2026-09-03 the
+degraded session had returned nothing for the same report and code. So the empty
+results were the session, not the database, which is the canary's whole premise.
+
 **What to do about it.** Before concluding that any report lacks data, run a
 **canary query**: a report and period known to return a large result, AR
 Importaciones Detalladas, one recent month, no filters, which should trigger
@@ -567,15 +572,27 @@ Never report a download as done on the strength of a click returning successfull
 Exports land in Chrome's download directory as:
 
 ```
-detalle_{CC}{report}_{Y}-{M}-{D}-{HHMMSS}.xlsx
+detalle_{CC}{report}_{Y}-{M}-{D}-{HMMSS}.xlsx
 detalle_ARimportDetalladas_2026-8-3-125819.xlsx
 ```
 
-Month and day are not zero padded, and the timestamp is the browser's. Since the
-name encodes country and report but **not the period queried**, two tramos of the
-same report differ only by timestamp. Rename each file to something meaningful as
-soon as it lands, and record that name in the manifest, or a long run becomes a
-directory of indistinguishable files.
+**The date in the name is not a calendar date.** Nothing is zero padded, and:
+
+- `{M}` is the JavaScript month, counted **from 0**: `8` is September.
+- `{D}` appears to be the **weekday** (JavaScript `getDay`, 0 = Sunday), not the
+  day of the month. Seven files named `...2026-8-4-...` were all recorded on
+  Thursday 2026-09-03, and one named `...2026-8-3-22443` was downloaded on
+  Wednesday 2026-09-02 at 22:44. Inferred from those files, not confirmed.
+- The time is `HMMSS` without padding: `15421` is 15:04:21.
+
+So never date a sample from its file name. An earlier note read `2026-8-4` as
+"bajada 2026-08-04" and was a month and a day off. Use the file's modification
+time, or the `updated_at` the manifest recorded.
+
+Since the name encodes country and report but **not the period queried**, two
+tramos of the same report differ only by timestamp. Rename each file to something
+meaningful as soon as it lands, and record that name in the manifest, or a long run
+becomes a directory of indistinguishable files.
 
 ## Large exports take time
 

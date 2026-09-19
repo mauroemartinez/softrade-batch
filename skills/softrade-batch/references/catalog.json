@@ -503,8 +503,8 @@
           "cutoff": null,
           "columns_measured": null,
           "names": {
-            "local": "Consignatario",
-            "counterparty": "Shipper"
+            "local": "unknown",
+            "counterparty": "unknown"
           },
           "note": "contraparte de Ingresos, no relevado"
         },
@@ -972,22 +972,22 @@
           "note": "pese al nombre, es el dataset UE estándar (euros, FOB, País de Procedencia); más nuevo que 'Importaciones'"
         },
         "export": {
-          "cutoff": "2025-12-31",
+          "cutoff": null,
           "columns_measured": null,
           "names": {
             "local": null,
             "counterparty": null
           },
-          "note": "específico de España"
+          "note": "específico de España; vigencia no relevada"
         },
         "exportTotalizadas": {
-          "cutoff": "2026-05-31",
+          "cutoff": null,
           "columns_measured": null,
           "names": {
             "local": null,
             "counterparty": null
           },
-          "note": "dataset UE estándar"
+          "note": "dataset UE estándar; vigencia no relevada"
         }
       }
     },
@@ -1788,7 +1788,7 @@
             "local": "Exportador",
             "counterparty": "Comprador"
           },
-          "note": "muestra bajada 2026-08-04 (454 filas/454 registros); columnas aún sin documentar"
+          "note": "muestra bajada 2026-09-03 (454 filas/454 registros); columnas aún sin documentar"
         }
       }
     },

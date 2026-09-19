@@ -56,13 +56,42 @@ def resolve_report(catalog, name):
     if n in aliases:
         return aliases[n]
 
-    hits = sorted({v for k, v in aliases.items() if n and (n in k or k in n)})
-    if len(hits) == 1:
-        return hits[0]
-    if hits:
+    # Second chance: the same words, forgiving singular/plural, filler words and
+    # word order ("exportación detallada", "historico de importaciones"). A key
+    # that two different reports share is dropped rather than guessed.
+    by_key = {}
+    for k, v in aliases.items():
+        by_key.setdefault(_key(k), set()).add(v)
+    hit = by_key.get(_key(name))
+    if hit and len(hit) == 1:
+        return next(iter(hit))
+
+    # Anything looser is only a suggestion. Resolving on a substring used to let
+    # a short alias win silently: "exportación detallada" contains "expo" and
+    # came back as plain `export`, a plausible and wrong report.
+    near = sorted({v for k, v in aliases.items() if n and (n in k or k in n)})
+    if near:
         raise CatalogError(
-            "reporte ambiguo: %r podría ser %s. Usá el id exacto." % (name, ", ".join(hits)))
+            "no reconozco el reporte %r. ¿Quisiste decir %s? Usá el id exacto."
+            % (name, " / ".join(near)))
     raise CatalogError("no reconozco el reporte %r" % name)
+
+
+_FILLER = {"de", "del", "la", "las", "los", "el", "y"}
+
+
+def _stem(word):
+    """Crude singular form, applied identically to input and aliases."""
+    if len(word) > 4 and word.endswith("es"):
+        return word[:-2]
+    if len(word) > 3 and word.endswith("s"):
+        return word[:-1]
+    return word
+
+
+def _key(text):
+    words = [w for w in _norm(text).split() if w not in _FILLER]
+    return " ".join(sorted(_stem(w) for w in words))
 
 
 def country(catalog, code):
@@ -106,11 +135,13 @@ def parse_iso(d):
     return _dt.date.fromisoformat(d)
 
 
-def vitality(cat_entry, today=None):
+def vitality(cat_entry, today=None, thresholds=None):
     """('viva'|'rezagada'|'congelada'|'desconocida', months_stale_or_None).
 
     Uses the stored override if present (a few reports are 'al día' with no
-    exact date); otherwise computes from `cutoff` against today.
+    exact date); otherwise computes from `cutoff` against today. Pass
+    `catalog["meta"]["vitality_thresholds_months"]` as `thresholds`, or editing
+    those numbers in the catalog changes nothing.
     """
     if cat_entry.get("vitality"):
         return cat_entry["vitality"], None
@@ -119,7 +150,7 @@ def vitality(cat_entry, today=None):
         return "desconocida", None
     today = today or _dt.date.today()
     months = (today.year - cutoff.year) * 12 + (today.month - cutoff.month)
-    return _bucket(months), months
+    return _bucket(months, thresholds), months
 
 
 def _bucket(months, thresholds=None):

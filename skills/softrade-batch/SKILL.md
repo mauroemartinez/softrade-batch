@@ -83,10 +83,18 @@ Rules:
   ```
 
   It exits `0` OK, `1` WARN (usable with caveats), `2` IMPOSSIBLE (the report does
-  not exist, or cannot answer a by-company question, or the whole period is past
-  the data cutoff). Its `messages_es` lines are written to be relayed to the user
-  verbatim. This is the fast path; the reference files below are the narrative
-  behind each verdict, for when you need the detail.
+  not exist, cannot answer a by-company question, the dates are malformed or
+  reversed, or the whole period is past the cutoff of a base that is frozen). Its
+  `messages_es` lines are written to be relayed to the user verbatim. This is the
+  fast path; the reference files below are the narrative behind each verdict, for
+  when you need the detail.
+
+  The catalog cutoffs are a snapshot from `meta.captured`, so a period past the
+  cutoff of a live base is only a WARN: open the form and read the period it
+  pre-fills, which is the real maximum. The report name resolves on an exact alias,
+  or on the same words forgiving singular/plural, filler words and word order.
+  Anything looser is not guessed: preflight answers "no reconozco el reporte X.
+  ¿Quisiste decir A / B?", and you ask the user or pass the canonical id.
 
   What it catches, all of which otherwise look like a filter mistake after
   downloading: six Latin American countries name nobody on either side; Argentina
@@ -141,8 +149,14 @@ python scripts/plan_run.py --out RUN_DIR \
 to outlive the session. Downloads go to `RUN_DIR/downloads/`.
 
 **Pass every filter to `plan_run.py`.** `--importador`, `--exportador`,
-`--proveedor`, `--ncm`, `--aduana`, `--pais-origen`, `--marca`. This is not
+`--proveedor`, `--comprador`, `--ncm`, `--aduana`, `--pais-origen`, `--marca`. This is not
 bookkeeping, it is the difference between a resumable run and a broken one.
+
+Company filters must match the report's direction. Import reports take
+`--importador` (the local company) and `--proveedor` (the foreign supplier);
+export reports take `--exportador` and `--comprador` (the foreign buyer). A
+mismatch exits `2` and names the right flag ("usá --X"). Reports that go both ways
+(Otras Operaciones, Zona Franca, Transitos) are not checked.
 
 Country, report and dates alone do not define a dataset. "Importaciones de
 Argentina en 2024" is a different file for every importer. If the company you spent
@@ -258,7 +272,8 @@ Repeat until `next` reports the run is complete:
    The filesystem is.
 7. **Rename the file immediately.** Exports are named
    `detalle_{CC}{report}_{timestamp}.xlsx` with no period in the name, so two
-   tramos of the same report are indistinguishable. Rename to something like
+   tramos of the same report are indistinguishable. The timestamp is not a usable
+   date either (0-indexed month, and the day slot appears to be the weekday). Rename to something like
    `ar_importDetalladas_2026-01_2026-07.xlsx` before doing anything else.
 8. **Inspect and record in one command.** Do not transcribe counts by hand:
 
@@ -291,6 +306,13 @@ python scripts/run_state.py skip RUN_DIR --job 7 --note "sin datos para el perio
 
 A period with genuinely no data is `skip`, not `fail`. `fail` means retry later;
 `next` hands failed jobs back after the pending ones are exhausted.
+
+Before resuming a run, and after any hand edit of a manifest, run
+`python scripts/run_state.py check RUN_DIR` (`--json` gives `{ok, jobs, problems,
+warnings}`). It validates every job against `catalog.json` without touching
+anything: non-canonical reports, reversed or invalid dates, spans over 12 months,
+duplicate jobs, `split` jobs with no children, bad attempts. It exits `1` on any
+problem; fix those before the next `next`.
 
 ## Context discipline
 
