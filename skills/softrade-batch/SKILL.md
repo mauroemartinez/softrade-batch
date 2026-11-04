@@ -23,6 +23,31 @@ the result to the manifest immediately. If the chat dies mid batch, a new one ru
 
 ## Before starting
 
+**`scripts/...` and `references/...` in this file are relative to this skill's own
+directory**, the one that holds this `SKILL.md` (Claude Code announces it as the
+skill's base directory when the skill loads; installed as a plugin it sits under
+the plugin cache, not in the user's project). Do not `cd` into it. Stay in the
+user's project or working folder and prefix every script with the absolute base
+directory, so each `python scripts/X.py ...` below really runs as:
+
+```bash
+python "<skill base dir>/scripts/run_state.py" next "C:/ruta/absoluta/al/RUN_DIR"
+```
+
+`RUN_DIR` and downloaded files are the opposite: they belong to the user's project,
+not to the skill, so always pass them as **absolute paths** inside the user's
+project or working folder. Never a relative path that could resolve inside the
+skill directory: anything written under the plugin cache (manifest included) is
+lost on the next plugin update or reinstall.
+
+The scripts that read spreadsheets (`inspect_download.py`, `party_check.py`,
+`merge_run.py`) need
+`pandas`, `openpyxl` and, for old `.xls` files, `xlrd`. A missing one is an
+environment problem, not a bad download (`inspect_download.py` says "missing
+dependency" and leaves the manifest alone): ask the user to run
+`pip install pandas openpyxl xlrd` (or `pip install -r requirements.txt` from a
+checkout of the repo). The other scripts are standard library only.
+
 Softrade holds its session per tab. A tab you open yourself will land on the login
 screen even when the user has another tab logged in. **Never type the user's
 credentials.** Ask the user to log in themselves in the tab you opened, and to say
@@ -98,8 +123,9 @@ Rules:
 
   What it catches, all of which otherwise look like a filter mistake after
   downloading: six Latin American countries name nobody on either side; Argentina
-  names importers but not exporters; Paraguay's names are *Probable*, meaning
-  inferred, and that word must reach the user; Brasil Detalladas, Mexico and
+  names importers but not exporters; Paraguay's names (and Colombia Histórico's)
+  are labelled *Probable* by Softrade (it does not say why; Paraguay's carry the
+  RUC), and that word must reach the user; Brasil Detalladas, Mexico and
   Guatemala Detalladas are frozen in 2021. `plan_run.py` runs the same check and
   refuses to build a manifest for an impossible run, so a plan that survives is a
   plan that can be executed.
@@ -114,6 +140,12 @@ Rules:
   names both importer and supplier and runs to May 2026, and Brasil's Cargas
   Maritimas carries consignee and shipper with contact details. Never tell a user a
   country has no company data without checking its other reports.
+- **But a Cargas name is not automatically the buyer.** Customs reports name the
+  importer of record. Cargas reports come from bills of lading, whose consignee
+  can be a forwarder, a shipping line or a bank under a "TO ORDER" bill. Say so
+  before ranking companies from Cargas, run `scripts/party_check.py` on the file to
+  measure how much of it is logistics, and for the US keep `Incluir Masters` off.
+  Detail in `references/cargas.md`.
 - **The company's country is not always the query country.** A user asking for
   "las impo de mi empresa" wants the country where the company imports, which is
   usually where it operates, but confirm rather than infer when the name carries a
@@ -145,8 +177,9 @@ python scripts/plan_run.py --out RUN_DIR \
   --label "research-q3"
 ```
 
-`RUN_DIR` should live with the user's project, not in a temp directory, since it has
-to outlive the session. Downloads go to `RUN_DIR/downloads/`.
+`RUN_DIR` should be an absolute path in the user's project, not in a temp directory
+nor in the skill's directory, since it has to outlive the session and plugin
+updates. Downloads go to `RUN_DIR/downloads/`.
 
 **Pass every filter to `plan_run.py`.** `--importador`, `--exportador`,
 `--proveedor`, `--comprador`, `--ncm`, `--aduana`, `--pais-origen`, `--marca`. This is not
@@ -201,8 +234,9 @@ to find them.
 **One period, one file.** When the whole request fits in one job, the user gets a
 single consolidated Excel. Monthly files are an internal mechanism for when
 Softrade forces segmentation, never the default deliverable. If a run did get
-segmented, say so when handing over, since the user now has several files to
-combine rather than one.
+segmented, say so when handing over and merge the files with
+`scripts/merge_run.py` (Step 3) rather than leaving the user several files to
+combine by hand.
 
 Tell the user the job count before you start. Forty jobs is a multi-session run and
 they should know that going in.
@@ -222,12 +256,14 @@ row count instead of guessing.
 | Bill of lading reports (the only company data for BR, MX, US) | `references/cargas.md` |
 | What has been verified versus only cataloged? | `references/coverage.md` |
 
-`catalog.json` is generated from the markdown by `tools/build_catalog.py`; when a
-`references/*.md` fact changes, rebuild it. The markdown stays the source of truth
-and the human-readable narrative.
+`catalog.json` ships ready to use; never regenerate it during a run. It is built
+by `tools/build_catalog.py`, which lives in the repo checkout, outside this skill
+directory, so an installed skill cannot run it. When a `references/*.md` fact
+changes, the maintainer transcribes it into that builder and rebuilds the catalog
+from the repo root. The markdown stays the human-readable narrative.
 
 **`fields-matrix.md` is the one to open first when the request names a field.**
-"Necesito el incoterm" narrows the possible countries to three, and knowing that
+"Necesito el incoterm" narrows the possible countries to a handful, and knowing that
 before planning saves a download that was never going to carry the column.
 
 Check these before promising anything: only 8 countries have Detalladas data at
@@ -253,6 +289,13 @@ Repeat until `next` reports the run is complete:
    timeout**, so read the field back and retry only if its value did not change.
    If the job carries an NCM-SIM code, **count the chips**: the field spawns a
    phantom empty chip that breaks the search.
+   **Type every filter with real key events** (click the field, type, Enter).
+   A value set from JavaScript paints a chip but does not count, and Softrade
+   refuses a search with no counting filter: a yellow toast, "Debe ingresar al
+   menos un parámetro de búsqueda", shows for a few seconds and the page stays on
+   the form. Read it wrong and every job in the batch looks like "sin datos".
+   Chips also survive leaving the report and pressing Reset, so clear the previous
+   job's chips before typing the new ones.
 4. Fire the search, then **check the page for "demasiado extensa" before doing
    anything else**. If it fired, the query is over the 30,000 record cap and the
    Excel button will download nothing at all. Do not narrow it by hand: mark the
@@ -354,6 +397,26 @@ fit one query, run the whole period once as a single job and compare:
 
 This costs one query and it is the only thing that distinguishes "no data" from
 "the query was broken and nobody noticed".
+
+**Merge before handing over.** When the run produced more than one file (a split
+job, or several years or countries), run
+`python scripts/merge_run.py RUN_DIR` (prefixed with the skill base dir, `RUN_DIR`
+absolute, as in "Before starting"). It writes `RUN_DIR/consolidado.xlsx`: one sheet
+per country/report, plus `origen_job` / `origen_periodo` columns on every row.
+Split parents are left out, since their months belong to their children. It
+refuses (exit `1`, nothing written) while jobs are pending or failed;
+`--allow-partial` merges the `done` ones anyway and the summary says `PARCIAL`, and
+so must your hand-over. It also refuses when files of the same country/report have
+different columns, when a file is missing from the manifest's download directory,
+unreadable or an HTML page, or when there is nothing to merge. It drops repeated
+rows only between jobs whose periods overlap, and prints rows and operations
+recounted from the merged data: quote both. Exit `3` means the file was written but
+some segments were flagged with `!` (empty or far smaller than their siblings, a
+mostly-empty split, or a file whose row count no longer matches the manifest): do
+the single-job comparison above before handing anything over. `--out X.xlsx` or
+`--out X.csv` (absolute path) writes elsewhere; a `.csv` only takes a single
+country/report. `--json` gives the summary as `{ok, output, partial, groups, jobs,
+warnings, flagged, ...}`.
 
 ## Learning a new report type
 

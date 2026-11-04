@@ -128,7 +128,7 @@ The table above is the catalog: which reports exist. This section is the far
 shorter list of what has been **verified by downloading real data**. Keep the two
 apart, and never present a catalog row as if its behaviour were known.
 
-### Argentina, verified 2026-09-02
+### Argentina, verified 2026-09-02 (Exportaciones on 2026-09-03)
 
 Data loaded through **31/7/2026**. The month picker greys out later months, so read
 the cutoff from the widget rather than assuming the current month exists.
@@ -139,7 +139,7 @@ the cutoff from the widget rather than assuming the current month exists.
 | Importaciones Detalladas | 36 | `Importador`, populated and filterable |
 | Exportaciones Detalladas | 31 | **none**, `Exportador` is `No disponible` in 100% of rows, and there is no filter |
 | Otras Operaciones | 30 | `Importador`, populated and filterable |
-| Exportaciones | not run | unknown |
+| Exportaciones | 9 | **none**, there is no `Exportador` column at all and no filter (measured 2026-09-03, `columns.md`) |
 
 Importaciones returned exactly the same records as Importaciones Detalladas for the
 same query, with fewer columns. It is a projection, not a different dataset.
@@ -148,11 +148,39 @@ Scale reference: one month of exports to a single destination country was 25,162
 records and 53,525 rows, 7 MB, which is 84% of the 30,000 record cap. One company's
 imports over seven months was 22 records and 143 rows.
 
+### Latin America import side, verified 2026-09-02
+
+The standard (or Detalladas) import report of all 19 Latin American countries, plus
+Brasil Cargas Marítimas Ingresos, has a measured column count. See
+`columns-latam.md` and `fields-matrix.md`.
+
+### Second survey pass, 2026-09-18
+
+The pre-filled period of each form was read and, where possible, a small sample
+downloaded (heading 8544 where the form takes it, one month). Only the column count, cutoff and notes were
+kept, not the column names. Recorded in `catalog.json` as `"surveyed": "2026-09-18"`.
+
+| Country | Report | Columns in Excel | Data through | Company identity |
+|---|---|---|---|---|
+| BO | Exportaciones | 23 | 31/08/2026 | `Exportador`, `Comprador` |
+| BO | Histórico Imp. / Exp. | form only | 30/09/2023 | none, anonymous |
+| BR | Exportaciones | form only | 31/08/2026 | none, anonymous statistics |
+| BR | Cargas Marítimas Salidas | 32 | 30/11/2023 | `Shipper`, `Consignatario` |
+| BR | Cargas Histórico Ingresos | 10 | 31/01/2020 | `Consignatario` only |
+| BR | Cargas Histórico Salidas | form only | 31/07/2018 | `Shipper` only |
+| CL | Exportaciones | 29 | 30/06/2026 | `Exportador` only |
+| CO | Exportaciones | 28 | 31/07/2026 | `Exportador`, `Comprador` |
+| CO | Histórico Imp. / Exp. | form only | 31/12/2021 | labelled *Probable* on both sides |
+| EC | Exportaciones | 45 | 06/09/2026 | `Exportador`, `Comprador` |
+| EC | Histórico Importaciones | 48 | 31/12/2017 | `Importador`; `Proveedor` in the Excel, no filter |
+| EC | Histórico Exportaciones | form only | 31/12/2017 | `Exportador` only |
+| EC | Cargas Ingresos | 33 | 31/07/2026 | `Consignatario`, `Shipper` |
+
 ### Everything else
 
 Not verified. Report availability comes from the catalog above, but column layouts,
 which filters each form offers, and whether importer or exporter names exist all
-vary by country. None of the Argentina findings should be assumed to carry over.
+vary by country. None of the findings above should be assumed to carry over.
 
 ## Cross-country views
 

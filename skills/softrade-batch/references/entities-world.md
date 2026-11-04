@@ -140,7 +140,7 @@ The United Kingdom sits outside that block: it uses `Codigo SA` rather than
 **Ukraine's exports lag its imports by two years**, 31/12/2022 against 31/12/2024.
 Its export form also carries both `Exportador` and `Comprador`.
 
-### Two traps in European data
+### Two things to know about European data
 
 **The values are in euros, not dollars.** `EUR FOB` where every other region gives
 `U$S CIF`. Mixing them in one analysis is silently wrong, and it is FOB against CIF

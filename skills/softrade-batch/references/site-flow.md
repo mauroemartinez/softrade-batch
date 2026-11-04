@@ -102,20 +102,37 @@ const b = [...document.querySelectorAll('ion-button,button')]
 const r = b.getBoundingClientRect();   // then click (left+width/2, top+height/2)
 ```
 
-### Zero results looks identical to a search that never ran
+### "Still on the form" has four meanings
 
-When a query matches nothing, Softrade **stays on `/home/formulario/...`, shows no
-message, and raises no alert**. There is no "sin resultados" anywhere. So "still on
-the form" has three possible meanings: the click missed, the query is still
-running, or the answer is genuinely empty.
+After clicking Buscar, staying on `/home/formulario/...` can mean:
 
-Tell them apart in this order:
+1. **The search was refused for lack of a filter.** See the next section: a yellow
+   toast says so for a few seconds, then vanishes.
+2. The query is still running: `document.querySelector('ion-loading,.loading-wrapper')`.
+3. The click missed Buscar (see "Clicking things reliably" on coordinate scaling).
+4. The filters genuinely match nothing. There is no "sin resultados" message.
 
-1. `document.querySelector('ion-loading,.loading-wrapper')`, still running.
-2. URL changed to `/home/detalle/...`, it worked.
-3. Neither, after the spinner is gone, either an empty result or a dead click.
-   Re-click Buscar by coordinate once. If it still does not move, treat it as
-   genuinely empty and `skip` the job.
+Read the top strip of the page within a second or two of clicking to catch case 1,
+check for the spinner, then re-click Buscar by coordinate once. Only after all that
+treat it as empty.
+
+### Softrade refuses a search without a filter, and JS-typed filters do not count
+
+Verified live 2026-09-18. Clicking Buscar with no parameter shows a yellow toast,
+**"Debe ingresar al menos un parámetro de búsqueda"**, at the top of the page. It
+disappears after a few seconds and the page stays on the form. Read the page ten
+seconds later and there is no trace of it, so it looks exactly like "no data".
+
+Setting a filter through JavaScript does not count as a parameter either, at least
+for chip-mode fields: assigning `input.value` and dispatching `input`/`change`
+paints a chip on screen, and the search is still refused. **Type filters with real
+key events**: click the field, type the code, press Enter. Once typed that way,
+AR Importaciones Detalladas with NCM-SIM `8544` goes straight to the results page.
+
+A plain (non-chip) text input set from JavaScript did work once, on AR
+Exportaciones, but there is no reason to rely on that: typing works everywhere.
+
+This one fact explains the 2026-09-03 session below.
 
 ### Identificador's suggestion panel overlaps the field below it
 
@@ -175,7 +192,7 @@ A 6-digit code typed as `854442` is normalised by Softrade to `8544.42`.
 
 ### Filters survive leaving the report, and Reset does not clear them
 
-Two separate traps that compound:
+Two separate behaviours that compound:
 
 - **Reset does not empty the chip fields.** The codes stay.
 - **Neither does navigating away and back** through the flag menu. Re-entering the
@@ -198,67 +215,33 @@ The Periodo control is a `p-datepicker` (`span.p-datepicker` wrapping the readon
 input, with its own trigger button), not an `ion-datetime`. Any guidance written
 against Ionic selectors will not find it.
 
-### A whole session can start returning empty results, and it looks like missing data
+### What happened on 2026-09-03, and why it was not a broken session
 
-**This is the most important thing learned on 2026-09-03, and it invalidated four
-wrong conclusions before it was spotted.**
+In that session the first search worked and every later one "returned nothing":
+three countries, five reports, with chip filters injected by JavaScript or with no
+filter at all. The conclusion drawn at the time, that the session had degraded
+(quota or throttling), was wrong. **Every one of those searches was refused**: the
+unfiltered ones for having no parameter, the chip ones because a JavaScript-set
+chip does not count as one. The toast was never seen because the page was read
+seconds after it had vanished.
 
-In one session: the first search returned data and downloaded fine. Every search
-after it returned nothing, across three countries, five reports, filtered and
-unfiltered. The run ended by searching **AR Importaciones Detalladas, one month, no
-filters at all**, a query whose result is known to be 25,061 records. It returned
-nothing, with no message.
-
-That single result rules out every per-report explanation. Along the way these
-conclusions were drawn and are all **unsafe**:
+So these conclusions from that session are all unfounded, and none of them made it
+into the catalog:
 
 - "the pre-filled default month is empty"
-- "Ecuador has no recent export data"
+- "Ecuador has no recent export data" (a correctly filtered query on 2026-09-03
+  later returned 100 rows, 60 records)
 - "AR Otras Operaciones has no data for 07/2026"
 - "the account is not subscribed to Mexico"
+- "the header cutoff is per country, and a report can lag far behind it"
 
-Each looked well-evidenced. All of them are equally explained by the session
-degrading after the first successful query.
-
-**Leading hypotheses, none confirmed:** the account's monthly row allowance is
-exhausted (Softrade shows consumption nowhere, so this is invisible), or the server
-throttles after a burst of queries.
-
-**Later corroboration.** A separate coverage run on 2026-09-04 queried EC
-Exportaciones with partida 8544 and got **100 rows, 60 records**. On 2026-09-03 the
-degraded session had returned nothing for the same report and code. So the empty
-results were the session, not the database, which is the canary's whole premise.
-
-**What to do about it.** Before concluding that any report lacks data, run a
-**canary query**: a report and period known to return a large result, AR
-Importaciones Detalladas, one recent month, no filters, which should trigger
-`demasiado extensa` immediately. If the canary comes back empty, the session is
-broken and **every "sin datos" result since the last good download is worthless**.
-Stop, tell the user, and do not record any of it in the manifest as `skipped`.
-
-Run the canary at the start of a batch, and again after any unexpected empty
-result. It costs one query and it is the difference between documenting the
-database and documenting a broken session.
-
-### Reports whose default period returned nothing (2026-09-03, UNRELIABLE)
-
-Measured 2026-09-03 on Ecuador, whose header advertises `23/8/2026`:
-
-| Report | Period | Filter | Result |
-|---|---|---|---|
-| EC Importaciones | 08/2026 | NANDINA 8544 | **0 rows** |
-| EC Importaciones | 08/2026 | NANDINA 8544.42 | **0 rows** |
-| EC Exportaciones | 08/2026 | none at all | **0 rows** |
-| EC Exportaciones | 07/2026 | none at all | **0 rows** |
-| EC Exportaciones | 01/2026 | NANDINA 0803.90 | **0 rows** |
-| EC Importaciones | (an earlier month) | NANDINA 8544 | 3,391 rows, per `columns-latam.md` |
-
-**Treat this table as evidence of the broken session above, not as evidence about
-these databases.** It is kept only so the pattern is recognisable next time.
-
-What does still stand, independently: empty results are **silent**. Softrade stays
-on the form, shows no message and raises no alert, so "no data" and "the session is
-broken" and "the click missed" all look identical. That is why the canary matters.
+**Canary, done right.** Before trusting any "sin datos" in a batch, run one query
+known to return data, **with a typed filter**: AR Importaciones Detalladas, the
+pre-filled month, NCM-SIM `8544`. It must reach `/home/detalle/AR/importDetalladas`.
+If it does not, something is wrong with the session or with how filters are being
+entered, and every empty result since the last good one is worthless: stop, and do
+not record any of them as `skipped`. An unfiltered canary is useless, since
+Softrade refuses it by design.
 
 ### Calendar coordinates do not transfer between forms
 
@@ -271,15 +254,14 @@ like a report with no data.
 This was hit live: coordinates taken from EC Exportaciones did nothing on EC
 Importaciones, and only the read-back revealed the fields still said `08/2026`.
 
-### The header cutoff is per country, not per report
+### Read the newest period per report, from the form itself
 
-The blue header showed `31/7/2026` on Argentina, and AR Importaciones does hold
-July. **AR Otras Operaciones returned zero rows for 07/2026 with no filters at
-all.** The cutoff in the header is the country's newest data in general, and an
-individual report can lag far behind it.
-
-So an empty month is not proof of an empty database. Before recording "sin datos",
-try an older period on that specific report.
+Each report's two Periodo fields arrive pre-filled with the newest period **that
+report** holds, which is the reliable per-report cutoff. The blue header date is
+shown on every form of a country and is best read as the country's general
+cutoff. (An earlier version of this section claimed a report can lag far behind
+the header, based on AR Otras Operaciones; that evidence was an unfiltered search
+Softrade had refused, so it proves nothing.)
 
 ### Download icons differ by report
 
@@ -295,7 +277,7 @@ exists. Asking for "este ano" in September 2026 means January through July, not
 January through September, and a range past the cutoff just returns less than the
 user expects with no warning.
 
-## Filling the Periodo fields: the big trap
+## Filling the Periodo fields: the most delicate step
 
 The Periodo fields are month pickers (`MM/YYYY`), not free text.
 
@@ -477,7 +459,27 @@ form row off, silently filling the wrong filter. Prefer, in order:
    nothing while looking like it worked. If an action seems to have no effect,
    re-query for the `button` role specifically.
 
-3. **Coordinates** only as a last resort.
+3. **Coordinates** only as a last resort, and some controls need them (Buscar, the
+   continent tabs, the calendar grid, the tariff field you type into).
+
+### Scale DOM coordinates before clicking
+
+This is why coordinates "drift". `getBoundingClientRect()` returns CSS pixels, and
+the click tool uses the screenshot's frame, which can be narrower. On 2026-09-18
+the window was `innerWidth` 1920 CSS px while the screenshot frame was 1568, so
+Buscar measured at (978, 571) had to be clicked at (800, 465). Clicking the raw
+DOM numbers hit empty space, which then read as "the search returned nothing".
+
+```js
+// factor = screenshot frame width (printed with every screenshot) / innerWidth
+const factor = 1568 / innerWidth;
+const r = el.getBoundingClientRect();
+[(r.left + r.width / 2) * factor, (r.top + r.height / 2) * factor]
+```
+
+The factor depends on the window and on the display scaling, so measure it once per
+session and again if the window is resized. On a window where it happens to be 1,
+the raw numbers work, which is why this went unnoticed at first.
 
 ## Screenshots stop working when the tab is backgrounded
 

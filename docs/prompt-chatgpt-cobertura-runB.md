@@ -53,9 +53,12 @@ de la que usa Claude Code), y medís las columnas de cada uno. 75 jobs, todos en
      después), no la pantalla: Softrade manda el archivo por WebSocket, no hay HTTP
      que mirar y la pantalla dice "descargando" igual aunque no baje nada.
    - **Canario:** al empezar la sesión y después de cualquier resultado vacío
-     inesperado, corré una consulta que sabés que es grande (AR Importaciones
-     Detalladas, un mes, sin filtros → debe dar "demasiado extensa"). Si el canario
-     vuelve vacío, la sesión se degradó: pará, no registres nada como `skipped`.
+     inesperado, corré una consulta que sabés que trae datos, **con un filtro
+     tipeado de verdad** (AR Importaciones Detalladas, el mes precargado, NCM-SIM
+     `8544`: tiene que llegar a la página de resultados). Una consulta sin filtros
+     no sirve: Softrade la rechaza con un cartel que dura segundos ("Debe ingresar
+     al menos un parámetro de búsqueda"). Si el canario falla, pará y no registres
+     nada como `skipped`.
 
 ### El loop, por job
 
