@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import unittest
 from unittest import mock
@@ -31,6 +32,7 @@ def write_truncated_xlsx(path):
 class InspectDownload(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp, True)
 
     def path(self, name="f.xlsx"):
         return os.path.join(self.tmp, name)
@@ -162,6 +164,7 @@ class RecordIntoManifest(unittest.TestCase):
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp, True)
         self.run_dir = os.path.join(self.tmp, "run")
         os.makedirs(self.run_dir)
         job = {"country": "AR", "report": "importDetalladas",
