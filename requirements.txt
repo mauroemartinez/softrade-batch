@@ -1,0 +1,6 @@
+# Dependencias de los scripts de la skill (skills/softrade-batch/scripts/) y de los tests.
+# Solo inspect_download.py y party_check.py leen planillas; el resto es stdlib.
+#   pip install -r requirements.txt
+pandas>=2.0
+openpyxl>=3.1   # .xlsx (lo que exporta Softrade)
+xlrd>=2.0.1     # .xls viejos; pandas lo pide solo para esa extensión
