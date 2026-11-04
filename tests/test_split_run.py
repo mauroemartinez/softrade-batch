@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -22,6 +23,7 @@ def job(note, status="pending"):
 class SplitRun(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root, True)
         os.makedirs(os.path.join(self.root, "corrida-catalogo"))
         src = os.path.join(self.root, "corrida-catalogo", "manifest.json")
         with open(src, "w", encoding="utf-8") as fh:
@@ -65,6 +67,58 @@ class SplitRun(unittest.TestCase):
         self._mark_done("claude")
         self.assertEqual(self._run(["--force"]), 0)
         self.assertEqual(self._status("claude"), "pending")
+
+
+    def _load(self, side):
+        with open(self._sub(side), encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_download_dir_is_relative_and_resolves_to_the_sub_run(self):
+        # The sub-manifests are versioned and meant to be resumed on another
+        # machine: no absolute path of this clone may end up in them. The
+        # relative "downloads" is resolved against RUN_DIR by run_state.
+        import run_state
+        self.assertEqual(self._run([]), 0)
+        elsewhere = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, elsewhere, True)
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(elsewhere)
+        for side in ("claude", "chatgpt"):
+            self.assertEqual(self._load(side)["download_dir"], "downloads")
+            want = os.path.join(self.root, "corrida-catalogo", "split-" + side, "downloads")
+            self.assertTrue(os.path.isdir(want))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                run_state.main(["next", os.path.dirname(self._sub(side)), "--json"])
+            got = json.loads(out.getvalue())["download_dir"]
+            self.assertEqual(os.path.normcase(os.path.abspath(got)), os.path.normcase(want))
+
+    def test_preflight_warnings_are_carried_over(self):
+        with open(split_run.SRC, encoding="utf-8") as fh:
+            master = json.load(fh)
+        master["preflight"] = ["[VE/importaciones] base congelada"]
+        with open(split_run.SRC, "w", encoding="utf-8") as fh:
+            json.dump(master, fh)
+        self.assertEqual(self._run([]), 0)
+        for side in ("claude", "chatgpt"):
+            self.assertEqual(self._load(side)["preflight"],
+                             ["[VE/importaciones] base congelada"])
+
+    def test_no_preflight_in_the_master_is_an_empty_list(self):
+        self.assertEqual(self._run([]), 0)
+        self.assertEqual(self._load("claude")["preflight"], [])
+
+    def test_failed_write_keeps_the_previous_sub_manifest(self):
+        from unittest import mock
+        self.assertEqual(self._run([]), 0)
+        self._mark_done("claude")
+        with mock.patch.object(json, "dump", side_effect=RuntimeError("boom")), \
+                self.assertRaises(RuntimeError):
+            self._run(["--force"])
+        self.assertEqual(self._status("claude"), "done")
+        sub_dir = os.path.dirname(self._sub("claude"))
+        self.assertEqual(sorted(os.listdir(sub_dir)), ["downloads", "manifest.json"])
 
 
 if __name__ == "__main__":

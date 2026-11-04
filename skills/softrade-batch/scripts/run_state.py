@@ -34,18 +34,38 @@ MANIFEST_NAME = "manifest.json"
 TERMINAL = {"done", "skipped", "split"}
 
 
+def _plan_run():
+    """plan_run.py, which holds the date helpers and the atomic manifest writer."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    try:
+        import plan_run
+    except ImportError:
+        sys.exit("cannot import plan_run.py -- keep both scripts in the same directory")
+    return plan_run
+
+
 def load(run_dir):
     path = os.path.join(run_dir, MANIFEST_NAME)
     if not os.path.exists(path):
         sys.exit("no manifest at %s -- run plan_run.py first" % path)
     with open(path, encoding="utf-8") as fh:
-        return path, json.load(fh)
+        try:
+            return path, json.load(fh)
+        except ValueError as e:
+            sys.exit("manifest at %s is not valid JSON (%s).\n"
+                     "Do not re-plan over it: fix it by hand or restore it from a copy."
+                     % (path, e))
 
 
 def save(path, manifest):
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(manifest, fh, indent=2, ensure_ascii=False)
-        fh.write("\n")
+    # temp file + os.replace: a write cut short never leaves half a manifest
+    _plan_run().write_manifest(path, manifest)
+
+
+def download_dir(manifest, args):
+    """The manifest's download_dir, absolute. A relative one (split_run's
+    sub-runs, the coverage master) is relative to RUN_DIR, not to the cwd."""
+    return _plan_run().resolve_download_dir(manifest, args.run_dir)
 
 
 def pick(manifest, index):
@@ -55,12 +75,26 @@ def pick(manifest, index):
     return jobs[index]
 
 
+def children_of(manifest, index):
+    """Indices of the jobs that `split` created from job `index`."""
+    return [i for i, j in enumerate(manifest["jobs"])
+            if isinstance(j, dict) and j.get("split_from") == index]
+
+
 def cmd_next(manifest, args):
     # Pending first, failed only once nothing pending is left. Handing a failed
     # job straight back means a run that hit an expired session retries the same
     # broken job forever instead of getting on with the work that can succeed.
-    ordered = [(i, j) for i, j in enumerate(manifest["jobs"]) if j["status"] == "pending"]
-    ordered += [(i, j) for i, j in enumerate(manifest["jobs"]) if j["status"] == "failed"]
+    #
+    # A job that has children is never handed out, whatever its status: its
+    # months belong to them. A manifest left by the old `reset` (parent back to
+    # pending next to its children) re-downloaded the whole period on top of
+    # them. `split --job N` repairs such a parent.
+    parents = {j.get("split_from") for j in manifest["jobs"] if isinstance(j, dict)}
+    ordered = [(i, j) for i, j in enumerate(manifest["jobs"])
+               if j["status"] == "pending" and i not in parents]
+    ordered += [(i, j) for i, j in enumerate(manifest["jobs"])
+                if j["status"] == "failed" and i not in parents]
 
     if getattr(args, "json", False):
         if not ordered:
@@ -69,7 +103,7 @@ def cmd_next(manifest, args):
         i, job = ordered[0]
         payload = dict(job)
         payload["index"] = i
-        payload["download_dir"] = manifest["download_dir"]
+        payload["download_dir"] = download_dir(manifest, args)
         payload["catalog_version"] = manifest.get("catalog_version")
         payload["preflight"] = manifest.get("preflight") or []
         print(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -96,7 +130,7 @@ def cmd_next(manifest, args):
         if job["status"] == "failed":
             print("  RETRY      this job already failed; nothing pending is left.")
             print("             If it fails the same way again, stop and tell the user.")
-        print("  save_to    %s" % manifest["download_dir"])
+        print("  save_to    %s" % download_dir(manifest, args))
         return 0
     print("no pending jobs -- run complete")
     return 0
@@ -230,16 +264,40 @@ def cmd_split(manifest, args):
     The original job is marked `split` rather than deleted, and the new jobs are
     appended, so every index the agent has already seen keeps pointing at the
     same job.
+
+    On a job that already has children but is not `split` (what `check` reports
+    as "padre e hijos"), it only marks the job `split` again, without new jobs.
     """
     job = pick(manifest, args.job)
+    # Splitting twice appended a second set of pending children over the same
+    # months, and `next` handed every period out twice.
+    kids = children_of(manifest, args.job)
     if job["status"] == "done":
+        if kids:
+            sys.exit("job %d is done but has children (%s) over the same period.\n"
+                     "`skip` the children that duplicate it instead."
+                     % (args.job, ", ".join(str(k) for k in kids)))
         sys.exit("job %d is done -- `reset` it first if you really mean to split it" % args.job)
+    if kids and job["status"] != "split":
+        # Repair, not a second split: a parent that already has children but
+        # is not `split` (the old `reset` left it pending) goes back to `split`
+        # and the children it has are kept. No new jobs are created.
+        job["status"] = "split"
+        job["note"] = args.note or "re-marked split: already has children %s" % (
+            ", ".join(str(k) for k in kids))
+        _stamp(job)
+        print("job %d -> split (repaired; existing children: %s)" % (
+            args.job, ", ".join(str(k) for k in kids)))
+        print("  no new jobs; run `next` to keep working on the children")
+        return 0
+    if job["status"] == "split":
+        sys.exit(
+            "job %d is already split (children: %s).\n"
+            "Work on the children instead: split one of them if it is still too large."
+            % (args.job, ", ".join(str(k) for k in kids) or "none found"))
 
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    try:
-        from plan_run import month_floor, month_index, split_range
-    except ImportError:
-        sys.exit("cannot import plan_run.py -- keep both scripts in the same directory")
+    pr = _plan_run()
+    month_floor, month_index, split_range = pr.month_floor, pr.month_index, pr.split_range
 
     date_from = str(job["date_from"]).strip().lower()
     date_to = str(job["date_to"]).strip().lower()
@@ -252,7 +310,14 @@ def cmd_split(manifest, args):
                 args.job, job["date_from"], job["date_to"])
         )
 
-    start, end = month_floor(job["date_from"]), month_floor(job["date_to"])
+    try:
+        start, end = month_floor(job["date_from"]), month_floor(job["date_to"])
+    except ValueError as e:
+        sys.exit(
+            "job %d has an invalid date (%s..%s): %s.\n"
+            "Fix it by hand in manifest.json; `check` lists it." % (
+                args.job, job["date_from"], job["date_to"], e)
+        )
     span = month_index(end) - month_index(start) + 1
     max_months = args.max_months or 1
 
@@ -301,6 +366,15 @@ def cmd_split(manifest, args):
 
 def cmd_reset(manifest, args):
     job = pick(manifest, args.job)
+    # A split parent covers the same months as its children. Putting it back to
+    # pending next to them means `next` downloads that period twice. Reset the
+    # children that need it instead; the parent stays `split`.
+    kids = children_of(manifest, args.job)
+    if kids:
+        sys.exit(
+            "job %d was split into jobs %s, so it cannot go back to pending:\n"
+            "the period would be downloaded twice. Reset the child job(s) that\n"
+            "need redoing instead." % (args.job, ", ".join(str(k) for k in kids)))
     job["status"] = "pending"
     job["file"] = None
     job["rows"] = None
@@ -339,6 +413,17 @@ def _load_catalog():
         return None, "%s: %s" % (type(e).__name__, e)
 
 
+def _catalog_version(catalog, manifest_version):
+    """The catalog's version in the format the manifest uses. "<date>+<hash>"
+    (meta.catalog_version, see _catalog.version) for current manifests; a
+    date-only one predates that field and was meta.captured, so it is compared
+    against meta.captured instead of warning on every old run."""
+    meta = catalog.get("meta") or {}
+    if "+" in str(manifest_version):
+        return meta.get("catalog_version") or meta.get("captured")
+    return meta.get("captured")
+
+
 def _parse_date(s):
     """YYYY-MM or YYYY-MM-DD -> (year, month), or None if not a real date."""
     m = re.match(r"^(\d{4})-(\d{2})(?:-(\d{2}))?$", s)
@@ -369,14 +454,35 @@ def _check_report(args, jobs, problems, warnings):
     return 0
 
 
+def _bounds(job):
+    """(first_day, last_day) of a job's period as (y, m, d) tuples, or None when
+    a date is a placeholder or not a real date. A bare YYYY-MM reads as the whole
+    month, so 2026-02 and 2026-02-01..2026-02-28 compare as the same period."""
+    out = []
+    for d, end in ((job.get("date_from"), False), (job.get("date_to"), True)):
+        s = str(d or "")
+        ym = _parse_date(s)
+        if ym is None:
+            return None
+        if len(s) > 7:
+            out.append((ym[0], ym[1], int(s[8:10])))
+        elif end:
+            nxt = datetime(ym[0] + ym[1] // 12, ym[1] % 12 + 1, 1)
+            out.append((ym[0], ym[1], (nxt - datetime(ym[0], ym[1], 1)).days))
+        else:
+            out.append((ym[0], ym[1], 1))
+    return tuple(out) if out[0] <= out[1] else None
+
+
 def cmd_check(manifest, args):
     """Static integrity check of a manifest, before or after a run.
 
     Catches the mistakes that a hand-built or machine-generated manifest tends to
     have: a report id that is not canonical, a country the catalog does not know,
     a `done` job with no file, a bad status, impossible or reversed dates, a
-    period wider than Softrade accepts, duplicated jobs, a `split` job with no
-    children. Read-only. Exits 1 if anything is wrong so it can gate a review.
+    period wider than Softrade accepts, duplicated or overlapping jobs, a `split`
+    job with no children, a job with children that is not `split`. Read-only.
+    Exits 1 if anything is wrong so it can gate a review.
     """
     problems, warnings = [], []
     catalog, cat_err = _load_catalog()
@@ -392,6 +498,7 @@ def cmd_check(manifest, args):
         return _check_report(args, 0, problems, warnings)
 
     seen = {}
+    periods = {}       # (país, reporte, filtros) -> [(índice, inicio, fin)]
     children = set()
     for j in jobs:
         if isinstance(j, dict) and isinstance(j.get("split_from"), int):
@@ -440,16 +547,35 @@ def cmd_check(manifest, args):
                     problems.append("%s: abarca %d meses (%s..%s); Softrade no acepta más de %d" % (
                         tag, span, j["date_from"], j["date_to"], _MAX_SPAN_MONTHS))
 
-        key = (cc, rid, str(j.get("date_from")), str(j.get("date_to")),
-               json.dumps(j.get("filters") or {}, sort_keys=True, ensure_ascii=False))
+        fkey = json.dumps(j.get("filters") or {}, sort_keys=True, ensure_ascii=False)
+        key = (cc, rid, str(j.get("date_from")), str(j.get("date_to")), fkey)
         if key in seen:
             problems.append("%s: duplicado del job %d (mismo país, reporte, fechas y filtros)" % (
                 tag, seen[key]))
         else:
             seen[key] = i
+            # Same query over months another job already covers: not a duplicate,
+            # but those months get downloaded twice. A `split` parent overlaps its
+            # children on purpose and is never downloaded, so it is left out.
+            bounds = _bounds(j)
+            if bounds and st != "split":
+                others = periods.setdefault((cc, rid, fkey), [])
+                for k, a, b in others:
+                    if bounds[0] <= b and a <= bounds[1]:
+                        problems.append("%s: se solapa con el job %d (mismo país, reporte y filtros; "
+                                        "%s..%s) -- esos meses se bajarían dos veces" % (
+                                            tag, k, j["date_from"], j["date_to"]))
+                        break
+                others.append((i,) + bounds)
 
         if st == "split" and i not in children:
             problems.append("%s: status split pero ningún job tiene split_from %d" % (tag, i))
+        if i in children and st != "split":
+            problems.append("%s: status %s pero hay jobs con split_from %d -- el período se "
+                            "bajaría dos veces (padre e hijos)%s" % (
+                                tag, st, i,
+                                "" if st == "done" else
+                                "; `run_state.py split --job %d` lo vuelve a marcar split" % i))
         if st == "done":
             if not j.get("file"):
                 problems.append("%s: done pero sin 'file'" % tag)
@@ -464,9 +590,10 @@ def cmd_check(manifest, args):
             problems.append("%s: attempts negativo" % tag)
 
     cv = manifest.get("catalog_version")
-    if catalog and cv and cv != catalog["meta"]["captured"]:
+    want = _catalog_version(catalog, cv) if catalog else None
+    if cv and want and cv != want:
         warnings.append("catalog_version del manifiesto (%s) != catalog.json (%s)" % (
-            cv, catalog["meta"]["captured"]))
+            cv, want))
     if catalog is None:
         warnings.append("_catalog.py no está junto a este script: no validé país/reporte")
 
