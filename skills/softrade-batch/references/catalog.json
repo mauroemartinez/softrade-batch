@@ -13,8 +13,9 @@
       "null": "reporte anónimo de ese lado: no hay columna ni filtro",
       "no_disponible": "la columna existe pero es 'No disponible' en el 100% y no hay filtro",
       "unknown": "el form no se relevó; puede o no filtrar por empresa",
-      "Probable ...": "nombre inferido por Softrade, no declarado"
-    }
+      "Probable ...": "Softrade lo rotula 'Probable' sin explicar por qué; el archivo trae el RUC"
+    },
+    "catalog_version": "2026-09-18+3f6bcde3"
   },
   "report_types": {
     "import": {
@@ -421,30 +422,34 @@
           }
         },
         "export": {
-          "cutoff": "2026-07-31",
-          "columns_measured": null,
+          "cutoff": "2026-08-31",
+          "columns_measured": 23,
           "names": {
             "local": "Exportador",
             "counterparty": "Comprador"
-          }
+          },
+          "note": "trae Incoterm, Flete y Seguro",
+          "surveyed": "2026-09-18"
         },
         "historicoImport": {
-          "cutoff": null,
+          "cutoff": "2023-09-30",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": null,
+            "counterparty": null
           },
-          "note": "form Histórico no relevado"
+          "note": "congelada 09/2023; anónimo, solo CIF y Kgs",
+          "surveyed": "2026-09-18"
         },
         "historicoExport": {
-          "cutoff": null,
+          "cutoff": "2023-09-30",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": null,
+            "counterparty": null
           },
-          "note": "form Histórico no relevado"
+          "note": "congelada 09/2023; anónimo, filtra por Departamento",
+          "surveyed": "2026-09-18"
         }
       }
     },
@@ -473,13 +478,14 @@
           "note": "congelada 11/2021"
         },
         "export": {
-          "cutoff": null,
+          "cutoff": "2026-08-31",
           "columns_measured": null,
           "names": {
             "local": null,
             "counterparty": null
           },
-          "note": "reporte estándar no relevado"
+          "note": "estadística anónima: filtra por Puerto y Estado, sin empresas",
+          "surveyed": "2026-09-18"
         },
         "exportDetalladas": {
           "cutoff": "2021-11-30",
@@ -500,31 +506,34 @@
           "note": "manifiesto de embarque; trae dirección, email y teléfono de ambas partes: datos personales, no redistribuir"
         },
         "cargasMaritimasSalidas": {
-          "cutoff": null,
-          "columns_measured": null,
+          "cutoff": "2023-11-30",
+          "columns_measured": 32,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Shipper",
+            "counterparty": "Consignatario"
           },
-          "note": "contraparte de Ingresos, no relevado"
+          "note": "manifiesto de embarque; trae Notify y Forwarder. En la muestra medida, 2 de cada 3 consignatarios eran logísticas: no son el comprador. Datos de contacto de ambas partes: no redistribuir",
+          "surveyed": "2026-09-18"
         },
         "cargasHistoricoIngresos": {
-          "cutoff": null,
-          "columns_measured": null,
+          "cutoff": "2020-01-31",
+          "columns_measured": 10,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Consignatario",
+            "counterparty": null
           },
-          "note": "no relevado"
+          "note": "congelada 01/2020. Se arma como declaración (Aduana, Estado, NCM de 8 dígitos, todos los transportes) y en la muestra el 99% de los consignatarios eran empresas: funciona como importador real",
+          "surveyed": "2026-09-18"
         },
         "cargasHistoricoSalidas": {
-          "cutoff": null,
+          "cutoff": "2018-07-31",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Shipper",
+            "counterparty": null
           },
-          "note": "no relevado"
+          "note": "congelada 07/2018; mismo formato que Histórico Ingresos, del lado exportador",
+          "surveyed": "2026-09-18"
         }
       }
     },
@@ -587,11 +596,13 @@
         },
         "export": {
           "cutoff": "2026-06-30",
-          "columns_measured": null,
+          "columns_measured": 29,
           "names": {
             "local": "Exportador",
             "counterparty": null
-          }
+          },
+          "note": "trae FOB y CIF, Marca y Cláusula VTA (la condición de venta, equivalente al Incoterm)",
+          "surveyed": "2026-09-18"
         }
       }
     },
@@ -635,30 +646,36 @@
           "note": "tiene Transportista"
         },
         "export": {
-          "cutoff": "2026-06-30",
-          "columns_measured": null,
+          "cutoff": "2026-07-31",
+          "columns_measured": 28,
           "names": {
             "local": "Exportador",
             "counterparty": "Comprador"
-          }
+          },
+          "note": "trae Agente Aduanero y Transportista; solo FOB",
+          "surveyed": "2026-09-18"
         },
         "historicoImport": {
-          "cutoff": null,
+          "cutoff": "2021-12-31",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Probable Importador",
+            "counterparty": "Probable Proveedor"
           },
-          "note": "form Histórico no relevado"
+          "inferred": true,
+          "note": "congelada 12/2021. Softrade los rotula 'Probable' sin explicar por qué: pasá la palabra al usuario tal cual",
+          "surveyed": "2026-09-18"
         },
         "historicoExport": {
-          "cutoff": null,
+          "cutoff": "2021-12-31",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Probable Exportador",
+            "counterparty": "Probable Comprador"
           },
-          "note": "form Histórico no relevado"
+          "inferred": true,
+          "note": "congelada 12/2021. Softrade los rotula 'Probable' sin explicar por qué: pasá la palabra al usuario tal cual",
+          "surveyed": "2026-09-18"
         }
       }
     },
@@ -853,39 +870,44 @@
           "note": "base más completa del sistema: 48 columnas, Incoterm y Marca presentes"
         },
         "export": {
-          "cutoff": "2026-08-23",
-          "columns_measured": null,
+          "cutoff": "2026-09-06",
+          "columns_measured": 45,
           "names": {
             "local": "Exportador",
             "counterparty": "Comprador"
           },
-          "note": "trae Estado de Declaración"
+          "note": "45 columnas: Incoterm, Marca, Modelo, Bill of Lading y Estado de Declaración",
+          "surveyed": "2026-09-18"
         },
         "historicoImport": {
-          "cutoff": null,
-          "columns_measured": null,
+          "cutoff": "2017-12-31",
+          "columns_measured": 48,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Importador",
+            "counterparty": null
           },
-          "note": "form Histórico no relevado"
+          "note": "congelada 12/2017; 48 columnas pero layout distinto de la actual: sin Incoterm, Modelo ni Bill of Lading, con Refrendo, Nro. DAU, Advalorem y Aforador. Trae Proveedor y Marca en el Excel, sin filtro por Proveedor",
+          "surveyed": "2026-09-18"
         },
         "historicoExport": {
-          "cutoff": null,
+          "cutoff": "2017-12-31",
           "columns_measured": null,
           "names": {
-            "local": "unknown",
-            "counterparty": "unknown"
+            "local": "Exportador",
+            "counterparty": null
           },
-          "note": "form Histórico no relevado"
+          "note": "congelada 12/2017",
+          "surveyed": "2026-09-18"
         },
         "cargasIngresos": {
           "cutoff": "2026-07-31",
-          "columns_measured": null,
+          "columns_measured": 33,
           "names": {
             "local": "Consignatario",
             "counterparty": "Shipper"
-          }
+          },
+          "note": "manifiesto: no tiene campo de partida, se filtra por Descripción o Marcas. Trae BL Master, Consolidador y RUC del consignatario. En la muestra, 1 de cada 3 consignatarios era logística",
+          "surveyed": "2026-09-18"
         },
         "cargasSalidas": {
           "cutoff": null,
@@ -2094,7 +2116,7 @@
             "counterparty": "Probable Proveedor"
           },
           "inferred": true,
-          "note": "nombres inferidos por Softrade, no declarados: pasá la palabra 'Probable' al usuario siempre"
+          "note": "Softrade los rotula 'Probable' sin explicar por qué; traen RUC. Pasá la palabra al usuario tal cual"
         },
         "export": {
           "cutoff": "2026-07-31",
@@ -2104,7 +2126,7 @@
             "counterparty": "Probable Comprador"
           },
           "inferred": true,
-          "note": "nombres inferidos por Softrade, no declarados: pasá la palabra 'Probable' al usuario siempre"
+          "note": "Softrade los rotula 'Probable' sin explicar por qué; traen RUC. Pasá la palabra al usuario tal cual"
         }
       }
     },
