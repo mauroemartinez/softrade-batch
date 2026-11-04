@@ -12,8 +12,11 @@ Usage:
       --from 2023-01 --to 2025-12 \
       [--max-months 12] [--label "q3-research"]
 
-Re-running against an existing manifest adds only the jobs that are missing;
-jobs already marked done are never touched.
+Re-running against an existing manifest adds only the months that are missing;
+jobs already in it are never touched. A period that overlaps one already
+planned for the same country, report and filters is trimmed to the days no
+job covers yet, so nothing is downloaded twice and a job that covers only part
+of a month (say 2025-02-01..2025-02-15) gets the rest of that month planned.
 
 Plan wide, narrow later. `--max-months` defaults to 12 because that is Softrade's
 own ceiling, so a request that fits inside a year is ONE job and ONE consolidated
@@ -26,6 +29,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -37,14 +41,63 @@ except ImportError:  # scripts moved apart; validation just gets skipped
     _preflight = None
 
 MANIFEST_NAME = "manifest.json"
+# Softrade refuses a query wider than this, so it is also the ceiling for --max-months.
+MAX_MONTHS = 12
+
+
+def write_manifest(path, manifest):
+    """Write manifest.json atomically: a temp file in the same directory, then
+    os.replace. A crash or a full disk mid-write leaves the previous manifest
+    whole instead of a truncated one that no command can read. Same format as
+    always (indent 2, accents as-is, trailing newline), so diffs stay clean.
+
+    Shared by run_state.py, inspect_download.py --record and tools/split_run.py.
+    It does not lock: two writers at once can still lose one update.
+    """
+    folder = os.path.dirname(os.path.abspath(path))
+    try:
+        mode = os.stat(path).st_mode & 0o777
+    except OSError:
+        mode = 0o644
+    fd, tmp = tempfile.mkstemp(prefix=".manifest-", suffix=".tmp", dir=folder)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chmod(tmp, mode)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def resolve_download_dir(manifest, run_dir):
+    """download_dir as an absolute path. A relative one (old manifests, the
+    coverage run) is relative to the run dir, never to the current directory."""
+    d = manifest.get("download_dir") or "downloads"
+    return d if os.path.isabs(d) else os.path.abspath(os.path.join(run_dir, d))
 
 
 def month_floor(value):
-    """Parse YYYY-MM (or YYYY-MM-DD) into a (year, month) tuple."""
-    parts = value.split("-")
-    if len(parts) < 2:
+    """Parse YYYY-MM (or YYYY-MM-DD) into a (year, month) tuple.
+
+    Raises ValueError for anything that is not a real month (2026-13) or day
+    (2026-02-30): with --skip-preflight nothing else looks at the dates.
+    """
+    parts = str(value).strip().split("-")
+    if len(parts) not in (2, 3):
         raise ValueError("expected YYYY-MM, got %r" % value)
-    return int(parts[0]), int(parts[1])
+    try:
+        nums = [int(p) for p in parts]
+        date(nums[0], nums[1], nums[2] if len(nums) == 3 else 1)
+    except ValueError:
+        raise ValueError("%r is not a real YYYY-MM[-DD] date" % value)
+    return nums[0], nums[1]
 
 
 def month_index(ym):
@@ -107,9 +160,66 @@ def _canon(country, report):
     return cc, report
 
 
-def job_key(job):
-    cc, rid = _canon(job["country"], job["report"])
-    return (cc, rid, job["date_from"], job["date_to"], filters_key(job.get("filters")))
+def _day_bounds(job):
+    """(first, last) day ordinals of a job's period, or None when a date is a
+    placeholder, unreadable or reversed. A bare YYYY-MM reads as the whole
+    month, the same rule `run_state.py check` applies (`_bounds`)."""
+    out = []
+    for value, is_end in ((job.get("date_from"), False), (job.get("date_to"), True)):
+        parts = str(value or "").split("-")
+        try:
+            y, m = int(parts[0]), int(parts[1])
+            if len(parts) > 2:
+                d = int(parts[2])
+            else:
+                d = last_day(y, m) if is_end else 1
+            out.append(date(y, m, d).toordinal())
+        except (IndexError, ValueError):
+            return None
+    return tuple(out) if out[0] <= out[1] else None
+
+
+def covered_days(jobs):
+    """{(country, report, filters_key): set of day ordinals} already planned.
+
+    Every job counts, whatever its status: done, failed and skipped periods are
+    already accounted for, and a `split` parent's days belong to its children.
+    Jobs with placeholder or unreadable dates cover nothing.
+
+    Days, not months: a job for 2025-02-01..2025-02-15 covers half of February.
+    Counting the whole month as planned left 16..28 with no job at all, and
+    `check` (which compares days) had nothing to report.
+    """
+    out = {}
+    for j in jobs:
+        bounds = _day_bounds(j)
+        if bounds is None or "country" not in j or "report" not in j:
+            continue
+        cc, rid = _canon(j["country"], j["report"])
+        out.setdefault((cc, rid, filters_key(j.get("filters"))), set()).update(
+            range(bounds[0], bounds[1] + 1))
+    return out
+
+
+def missing_chunks(start, end, covered, max_months):
+    """split_range over [start, end] minus the covered days: each run of
+    uncovered days is split on its own, so a chunk never crosses into days
+    another job already has. A run that starts or ends mid-month (next to a
+    partial job) keeps that exact day as its bound."""
+    first = date(start[0], start[1], 1).toordinal()
+    last = date(end[0], end[1], last_day(*end)).toordinal()
+    chunks, run = [], []
+    for day in range(first, last + 2):
+        if day <= last and day not in covered:
+            run.append(day)
+        elif run:
+            a, b = date.fromordinal(run[0]), date.fromordinal(run[-1])
+            part = split_range((a.year, a.month), (b.year, b.month), max_months)
+            part[0]["date_from"] = a.isoformat()
+            part[-1]["date_to"] = b.isoformat()
+            chunks += part
+            run = []
+    return chunks
 
 
 def build_jobs(countries, reports, chunks, filters=None):
@@ -242,7 +352,7 @@ def validate(countries, reports, filters, date_from, date_to, skip=False):
               file=sys.stderr)
         sys.exit(2)
 
-    return canon_countries, canon_reports, catalog["meta"]["captured"], warns
+    return canon_countries, canon_reports, _catalog.version(catalog), warns
 
 
 def main(argv=None):
@@ -253,7 +363,7 @@ def main(argv=None):
                     help="repeatable report id or free text, e.g. importDetalladas / 'impo detalladas'")
     ap.add_argument("--from", dest="date_from", required=True, help="first month, YYYY-MM")
     ap.add_argument("--to", dest="date_to", required=True, help="last month, YYYY-MM")
-    ap.add_argument("--max-months", type=int, default=12,
+    ap.add_argument("--max-months", type=int, default=MAX_MONTHS,
                     help="max months per job (Softrade refuses queries over 12; leave at 12 "
                          "and split later with run_state.py split, only if a query truncates)")
     ap.add_argument("--label", default=None, help="free-text label for this run")
@@ -279,6 +389,9 @@ def main(argv=None):
     f.add_argument("--marca", action="append", metavar="NAME")
 
     args = ap.parse_args(argv)
+    if not 1 <= args.max_months <= MAX_MONTHS:
+        ap.error("--max-months tiene que estar entre 1 y %d: Softrade no acepta "
+                 "consultas de más de %d meses" % (MAX_MONTHS, MAX_MONTHS))
 
     filters = {k: v for k, v in (
         ("importador", args.importador), ("exportador", args.exportador),
@@ -287,10 +400,8 @@ def main(argv=None):
         ("pais_origen", args.pais_origen), ("marca", args.marca),
     ) if v}
 
-    countries, reports, catalog_version, warnings = validate(
-        args.country, args.report, filters, args.date_from, args.date_to,
-        skip=args.skip_preflight)
-
+    # The period first, and always: --skip-preflight skips the catalog, not
+    # the calendar.
     try:
         chunks = split_range(month_floor(args.date_from), month_floor(args.date_to),
                              args.max_months)
@@ -298,6 +409,11 @@ def main(argv=None):
         print("plan_run: período inválido (%s). Usá --from/--to YYYY-MM, con --from "
               "anterior o igual a --to." % ex, file=sys.stderr)
         sys.exit(2)
+
+    countries, reports, catalog_version, warnings = validate(
+        args.country, args.report, filters, args.date_from, args.date_to,
+        skip=args.skip_preflight)
+
     fresh = build_jobs(countries, reports, chunks, filters)
 
     os.makedirs(args.out, exist_ok=True)
@@ -306,8 +422,25 @@ def main(argv=None):
     if os.path.exists(path):
         with open(path, encoding="utf-8") as fh:
             manifest = json.load(fh)
-        existing = {job_key(j) for j in manifest["jobs"]}
-        added = [j for j in fresh if job_key(j) not in existing]
+        covered = covered_days(manifest["jobs"])
+        start, end = month_floor(args.date_from), month_floor(args.date_to)
+        want = range(date(start[0], start[1], 1).toordinal(),
+                     date(end[0], end[1], last_day(*end)).toordinal() + 1)
+        added, trimmed = [], 0
+        for country in countries:
+            for report in reports:
+                have = covered.get(
+                    _canon(country, report) + (filters_key(filters),), set())
+                # months planned in whole or in part, counted once each
+                trimmed += len({(date.fromordinal(d).year, date.fromordinal(d).month)
+                                for d in want if d in have})
+                added += build_jobs([country], [report],
+                                    missing_chunks(start, end, have, args.max_months),
+                                    filters)
+        if trimmed and added:
+            print("  aviso  %d mes(es) del período ya estaban planificados (en todo o en "
+                  "parte) con los mismos filtros; agrego solo los días que faltan" % trimmed,
+                  file=sys.stderr)
         manifest["jobs"].extend(added)
         # keep the caveats current with the widened run
         merged = list(manifest.get("preflight") or [])
@@ -331,16 +464,15 @@ def main(argv=None):
         verb = "created"
         count = len(fresh)
 
-    os.makedirs(manifest["download_dir"], exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(manifest, fh, indent=2, ensure_ascii=False)
-        fh.write("\n")
+    download_dir = resolve_download_dir(manifest, args.out)
+    os.makedirs(download_dir, exist_ok=True)
+    write_manifest(path, manifest)
 
     total = len(manifest["jobs"])
     pending = sum(1 for j in manifest["jobs"] if j["status"] == "pending")
     print("%s %s" % (verb, path))
     print("  jobs %s (+%d)  pending %d" % (total, count, pending))
-    print("  downloads -> %s" % manifest["download_dir"])
+    print("  downloads -> %s" % download_dir)
     return 0
 
 

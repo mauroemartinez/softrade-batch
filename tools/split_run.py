@@ -8,7 +8,7 @@ file and grab the same jobs.
 
 This carves the 112 jobs by their `note` tag:
 
-  claude  ->  Pass A  + B1 Detalladas + B2 Cargas   (new forms, most traps,
+  claude  ->  Pass A  + B1 Detalladas + B2 Cargas   (new forms, most unknowns,
               highest-value targets: MX Cargas Totales, US Cargas Maritimas)
   chatgpt ->  B3 Export-side LatAm + B4 Asia/Africa + Pass C anonymous
               (standard import/export form, mechanical, volume-heavy)
@@ -20,6 +20,12 @@ the master manifest (and the markdown) is a manual step at the end.
 Re-running refuses to overwrite a sub-manifest that already has progress (any
 job not "pending"), because that would wipe the sub-run's state. Pass --force
 only when that loss is intended.
+
+Each sub-manifest carries the master's `preflight` caveats and a relative
+`download_dir` ("downloads", i.e. its own split-<side>/downloads: run_state
+resolves it against the sub-run's RUN_DIR, not the cwd), and is written
+atomically. Relative on purpose: these manifests are versioned and resumed on
+other machines, so no absolute path of this clone may end up in them.
 
 Usage:  python tools/split_run.py [--force]
 """
@@ -37,6 +43,9 @@ for _s in (sys.stdout, sys.stderr):
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "corrida-catalogo", "manifest.json")
+
+sys.path.insert(0, os.path.join(ROOT, "skills", "softrade-batch", "scripts"))
+from plan_run import write_manifest  # noqa: E402  (atomic: temp file + os.replace)
 
 
 def side_of(note):
@@ -88,6 +97,9 @@ def main(argv=None):
 
     for side, jobs in buckets.items():
         out_dir = os.path.join(ROOT, "corrida-catalogo", "split-" + side)
+        # Stored relative ("downloads"): run_state.download_dir() re-bases it
+        # against this sub-run's RUN_DIR. An absolute path would leak this
+        # clone's location into the versioned manifest.
         os.makedirs(os.path.join(out_dir, "downloads"), exist_ok=True)
         sub = {
             "version": 1,
@@ -97,13 +109,13 @@ def main(argv=None):
             "max_months": master.get("max_months", 1),
             "catalog_version": master.get("catalog_version"),
             "date_convention": master.get("date_convention"),
+            # the caveats a driver relays to the user (`run_state.py status`)
+            "preflight": list(master.get("preflight") or []),
             "parent": "corrida-catalogo/manifest.json",
             "jobs": jobs,
         }
         path = os.path.join(out_dir, "manifest.json")
-        with open(path, "w", encoding="utf-8") as fh:
-            json.dump(sub, fh, indent=2, ensure_ascii=False)
-            fh.write("\n")
+        write_manifest(path, sub)
         done = sum(1 for j in jobs if j["status"] == "done")
         pend = sum(1 for j in jobs if j["status"] == "pending")
         print("%-8s %3d jobs  (%d done, %d pending)  -> %s"

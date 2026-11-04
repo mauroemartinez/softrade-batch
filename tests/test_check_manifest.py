@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 import tempfile
 import unittest
 
@@ -34,6 +35,7 @@ def split(run_dir, job):
 class CheckManifest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp, True)
 
     def _write(self, name, manifest):
         d = os.path.join(self.tmp, name)
@@ -117,6 +119,54 @@ class CheckManifest(unittest.TestCase):
         d = self._write("nodup", {"jobs": [self._job(filters={"a": ["1"]}), self._job(filters={"a": ["2"]})]})
         self.assertEqual(check(d), 0)
 
+    def test_overlapping_jobs_fail(self):
+        # Not a duplicate, but months 2026-03..2026-04 get downloaded twice.
+        d = self._write("overlap", {"jobs": [
+            self._job(date_from="2026-01", date_to="2026-04"),
+            self._job(date_from="2026-03", date_to="2026-06")]})
+        rc, out = check_json(d)
+        self.assertEqual(rc, 1)
+        self.assertTrue(any("solapa" in p for p in out["problems"]))
+
+    def test_adjacent_or_differently_filtered_jobs_pass(self):
+        d = self._write("adjacent", {"jobs": [
+            self._job(date_from="2026-01", date_to="2026-03"),
+            self._job(date_from="2026-04", date_to="2026-06")]})
+        self.assertEqual(check(d), 0)
+        d = self._write("half_months", {"jobs": [
+            self._job(date_from="2026-02-01", date_to="2026-02-14"),
+            self._job(date_from="2026-02-15", date_to="2026-02-28")]})
+        self.assertEqual(check(d), 0)
+        d = self._write("other_filters", {"jobs": [
+            self._job(filters={"a": ["1"]}),
+            self._job(filters={"a": ["2"]}, date_from="2026-02")]})
+        self.assertEqual(check(d), 0)
+
+    def test_pending_parent_with_children_fails(self):
+        # What `reset` of a split parent used to leave behind.
+        d = self._write("reset_parent", {"jobs": [self._job()]})
+        self.assertEqual(split(d, 0), 0)
+        path = os.path.join(d, "manifest.json")
+        with open(path, encoding="utf-8") as fh:
+            m = json.load(fh)
+        m["jobs"][0]["status"] = "pending"
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(m, fh)
+        rc, out = check_json(d)
+        self.assertEqual(rc, 1)
+        self.assertTrue(any("job 0" in p and "split_from" in p for p in out["problems"]))
+        # ...and the problem it reports has a CLI fix: `split` re-marks the
+        # parent without appending a second set of children.
+        n = len(m["jobs"])
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(split(d, 0), 0)
+        with open(path, encoding="utf-8") as fh:
+            m = json.load(fh)
+        self.assertEqual(m["jobs"][0]["status"], "split")
+        self.assertEqual(len(m["jobs"]), n)
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(check(d), 0)
+
     def test_split_without_children_fails(self):
         d = self._write("orphan_split", {"jobs": [self._job(status="split")]})
         self.assertEqual(check(d), 1)
@@ -157,6 +207,26 @@ class CheckManifest(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertFalse(out["ok"])
         self.assertTrue(out["problems"])
+
+    def _version_warnings(self, name, cv):
+        d = self._write(name, {"catalog_version": cv, "jobs": [self._job()]})
+        rc, out = check_json(d)
+        self.assertEqual(rc, 0)
+        return [w for w in out["warnings"] if "catalog_version" in w]
+
+    def test_current_catalog_version_has_no_warning(self):
+        import _catalog
+        cv = _catalog.version(_catalog.load())
+        self.assertEqual(self._version_warnings("cv_now", cv), [])
+
+    def test_stale_catalog_version_warns(self):
+        self.assertEqual(len(self._version_warnings("cv_old", "2000-01-01+deadbeef")), 1)
+
+    def test_legacy_date_only_version_compares_against_captured(self):
+        import _catalog
+        captured = _catalog.load()["meta"]["captured"]
+        self.assertEqual(self._version_warnings("cv_legacy", captured), [])
+        self.assertEqual(len(self._version_warnings("cv_legacy_old", "2000-01-01")), 1)
 
     def test_split_deferred_date_exits_cleanly(self):
         d = self._write("latest_split", {
