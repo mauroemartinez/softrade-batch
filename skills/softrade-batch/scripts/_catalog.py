@@ -23,10 +23,27 @@ class CatalogError(Exception):
 def load(path=None):
     p = path or CATALOG_PATH
     if not os.path.exists(p):
+        # catalog.json viene con la skill; tools/build_catalog.py vive en el repo,
+        # fuera de la skill instalada, así que el arreglo es reinstalar, no regenerar.
         raise CatalogError(
-            "no encuentro catalog.json en %s -- corré tools/build_catalog.py" % p)
+            "no encuentro catalog.json en %s -- la instalación de la skill está "
+            "incompleta: reinstalá el plugin o volvé a copiar la carpeta "
+            "skills/softrade-batch entera (regenerarlo con tools/build_catalog.py "
+            "es tarea de mantenimiento, desde un clon del repo)" % p)
     with open(p, encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def version(catalog):
+    """The catalog_version a manifest should carry.
+
+    meta.catalog_version ("<latest survey date>+<hash>", written by
+    tools/build_catalog.py) changes whenever any entry does; meta.captured alone
+    does not move on a partial survey pass. Older catalogs without the field fall
+    back to meta.captured.
+    """
+    meta = catalog.get("meta") or {}
+    return meta.get("catalog_version") or meta.get("captured")
 
 
 def _norm(text):
