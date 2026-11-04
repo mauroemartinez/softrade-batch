@@ -21,6 +21,7 @@ Verdicts and exit codes:
 import argparse
 import datetime as dt
 import json
+import re
 import sys
 
 for _s in (sys.stdout, sys.stderr):
@@ -56,6 +57,18 @@ def _ym(value):
 
 def _fmt_month(d):
     return "%02d/%04d" % (d.month, d.year)
+
+
+_REAL_IMPORTER = re.compile(r"(?<!no )(?:funciona como|es el) importador real")
+
+
+def _says_real_importer(note):
+    """True when a catalog note states the named party is the real importer.
+
+    The second survey wrote that finding into the note ("funciona como
+    importador real"); a negated form ("no es el importador real") does not count.
+    """
+    return bool(note) and bool(_REAL_IMPORTER.search(note.lower()))
 
 
 def evaluate(catalog, country, report, by_company=False,
@@ -124,7 +137,9 @@ def evaluate(catalog, country, report, by_company=False,
     # updates daily has newer data than the catalog says within days. Judge "is
     # this base alive" against the snapshot date, not against today, and trust the
     # period the Softrade form pre-fills over any stored cutoff.
-    captured = _catalog.parse_iso(catalog["meta"].get("captured")) or today
+    # An entry re-read in a later pass carries its own `surveyed` date.
+    captured = (_catalog.parse_iso(e.get("surveyed"))
+                or _catalog.parse_iso(catalog["meta"].get("captured")) or today)
     frozen_at_capture = _catalog.vitality(e, today=captured,
                                           thresholds=thresholds)[0] == "congelada"
     # A week, not ten days: at capture UY was 1 day behind (and its note says it
@@ -183,8 +198,9 @@ def evaluate(catalog, country, report, by_company=False,
             out["company_side"] = "unknown"
         elif str(local).lower().startswith("probable"):
             out["company_side"] = local
-            say(WARN, "%s marca la empresa como '%s': es un nombre inferido por Softrade, "
-                      "no un registro oficial. Pasale esa palabra al usuario."
+            say(WARN, "%s marca la empresa como '%s'. Softrade no explica ese "
+                      "'Probable' (el archivo trae el RUC al lado del nombre): pasale "
+                      "la palabra al usuario tal cual, sin confirmarla ni descartarla."
                       % (cc, local))
         else:
             out["company_side"] = local
@@ -193,7 +209,31 @@ def evaluate(catalog, country, report, by_company=False,
             msg += " y nombra la contraparte ('%s')." % counter if counter and counter != "unknown" else "."
             out["messages_es"].append(msg)
 
-    # --- nomenclature + euros trap -----------------------------------------
+    # --- bill-of-lading names are not always the buyer --------------------------
+    # A manifest names whoever the carrier delivers to: on master bills that is a
+    # forwarder or NVOCC, and "TO ORDER" bills name a bank or no one. Customs
+    # declarations name the importer of record. Only warn when the answer matters,
+    # and only about the side the user filters: on Salidas that is the Shipper,
+    # and the consignee is the counterparty (the catalog note covers it). Where
+    # the catalog measured the consignee as the real importer, believe it.
+    if (by_company and rt.get("family") == "cargas" and direction == "import"
+            and out["verdict"] != IMPOSSIBLE and not _says_real_importer(e.get("note"))):
+        extra = ""
+        if cc == "US":
+            extra = " En EE.UU. dejá 'Incluir Masters' apagado: los house bills nombran al consignatario real con mucha más frecuencia."
+        elif cc == "MX":
+            extra = (" En México, Cargas Totales filtra por Importador y Proveedor y trae "
+                     "Código SA y CIF, campos de declaración: puede que nombre al "
+                     "importador real, pero todavía no está confirmado.")
+        elif cc == "BR":
+            extra = " En Brasil, cuando el Consignatario es una logística, la columna 'Notify' suele nombrar al comprador real."
+        say(WARN, "%s / %s sale de manifiestos (conocimientos de embarque), no de "
+                  "declaraciones aduaneras: el consignatario puede ser un forwarder, "
+                  "una naviera o 'TO ORDER' de un banco, no el importador real. Revisá "
+                  "los consignatarios principales antes de atribuir volumen a una "
+                  "empresa.%s" % (cc, rt["label_es"], extra))
+
+    # --- nomenclature + euros caveat -----------------------------------------
     # The EU-standard dataset. España's own Importaciones / Exportaciones are the
     # exception: country-specific, with the real País de Origen. Its Totalizadas
     # reports are the EU-standard ones despite the name.
@@ -259,9 +299,28 @@ def main(argv=None):
     except _catalog.CatalogError as ex:
         print(ex, file=sys.stderr)
         return 2
+    except (OSError, ValueError) as ex:
+        # unreadable or not JSON: a traceback would exit 1, which reads as WARN
+        print("no puedo leer el catálogo %s: %s" % (args.catalog or _catalog.CATALOG_PATH, ex),
+              file=sys.stderr)
+        return 2
 
-    out = evaluate(catalog, args.country, args.report, args.by_company,
-                   args.date_from, args.date_to)
+    # Valid JSON with the wrong shape ('{}', '[]', a gutted entry) would blow up
+    # inside evaluate() with exit 1 too, which a caller reads as WARN.
+    cat_path = args.catalog or _catalog.CATALOG_PATH
+    missing = [k for k in ("countries", "report_types", "meta")
+               if not isinstance(catalog, dict) or not isinstance(catalog.get(k), dict)]
+    if missing:
+        print("no puedo leer el catálogo %s: falta %s (o no es un objeto)"
+              % (cat_path, ", ".join(missing)), file=sys.stderr)
+        return 2
+    try:
+        out = evaluate(catalog, args.country, args.report, args.by_company,
+                       args.date_from, args.date_to)
+    except (KeyError, TypeError, AttributeError) as ex:
+        print("no puedo leer el catálogo %s: entrada incompleta (%s: %s)"
+              % (cat_path, type(ex).__name__, ex), file=sys.stderr)
+        return 2
 
     if args.json:
         print(json.dumps(out, ensure_ascii=False, indent=2))
