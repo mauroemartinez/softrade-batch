@@ -4,15 +4,15 @@ Historico, Zona Franca/Libre, Transitos, Totalizadas y Otras Operaciones.
 
 ### EC / historicoImport
 
-<!-- PENDIENTE: medicion en vivo -->
+<!-- PENDIENTE: transcribir las columnas del Excel del 2026-09-18 -->
 
 - Pais: **EC Ecuador**
 - Reporte: `historicoImport` (Histórico Importaciones)
 - Nomenclatura: NANDINA
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 31/12/2017 (congelada)
+- Nombres esperados: Importador / Proveedor (sin filtro)
 
-Filas: pendiente. Registros: pendiente. Columnas: pendiente.
+Filas: pendiente. Registros: pendiente. Columnas: **48** (muestra del 2026-09-18, partida 8544, 12/2017; se guardo el conteo, no los nombres).
 
 | # | Column | Example |
 |---|---|---|
@@ -20,6 +20,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Tiene 48 columnas como la base actual, EC importaciones (`columns-latam.md`), pero no el mismo layout: segun los encabezados del Excel de la muestra trae `Refrendo`, `Nro. DAU`, `Base Imponible U$S`, `Advalorem`, `Aforador` y `Actividad Principal Importador`, y no trae `Incoterm`, `Modelo de Mercadería`, `Año producido` ni `Bill of Lading`.
+- El Excel trae `Proveedor`, pero el formulario no permite filtrar por el.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### EC / historicoExport
@@ -29,8 +31,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 - Pais: **EC Ecuador**
 - Reporte: `historicoExport` (Histórico Exportaciones)
 - Nomenclatura: NANDINA
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 31/12/2017 (congelada)
+- Nombres esperados: Exportador / ninguno
 
 Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
@@ -40,6 +42,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Formulario leido el 2026-09-18, sin Excel.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### BO / historicoImport
@@ -49,8 +52,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 - Pais: **BO Bolivia**
 - Reporte: `historicoImport` (Histórico Importaciones)
 - Nomenclatura: NANDINA
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 30/09/2023 (congelada)
+- Nombres esperados: ninguno / ninguno
 
 Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
@@ -60,6 +63,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Formulario leido el 2026-09-18, sin Excel: anonimo, solo CIF y Kgs. Historico Exportaciones, igual de congelada, filtra por Departamento.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### CO / historicoImport
@@ -69,8 +73,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 - Pais: **CO Colombia**
 - Reporte: `historicoImport` (Histórico Importaciones)
 - Nomenclatura: NANDINA
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 31/12/2021 (congelada)
+- Nombres esperados: Probable Importador / Probable Proveedor
 
 Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
@@ -80,6 +84,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Formulario leido el 2026-09-18, sin Excel. Softrade rotula los nombres 'Probable' sin explicar por que: pasa la palabra al usuario tal cual. Historico Exportaciones es igual (Probable Exportador / Probable Comprador).
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### VE / historicoImport

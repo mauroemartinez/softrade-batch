@@ -28,6 +28,6 @@ python skills/softrade-batch/scripts/inspect_download.py corrida-catalogo/SUB/do
 
 - Las lineas `rows`, `records`, `columns` y la lista completa de columnas van al `columns-*.md` que corresponda.
 - Los campos clave (FOB, CIF, empresa local, contraparte, Incoterm, Marca) van a `skills/softrade-batch/references/fields-matrix.md`.
-- Si el reporte tiene una trampa estructural nueva, documentarla en el archivo de referencia de su familia; si cambia el flujo del sitio, recien ahi tocar `site-flow.md`.
+- Si el reporte tiene una particularidad estructural nueva, documentarla en el archivo de referencia de su familia; si cambia el flujo del sitio, recien ahi tocar `site-flow.md`.
 
 6. Tildar en `skills/softrade-batch/references/coverage.md` la casilla del mismo job. La casilla y el job del sub-manifiesto tienen que coincidir (el indice del job no es el mismo que en el maestro). Antes de retomar, o despues de editar un manifiesto a mano, `run_state.py check corrida-catalogo/SUB` valida que siga sano.

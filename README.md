@@ -25,7 +25,7 @@ Hecho para el caso que más duele: **cuando son muchas descargas** y a mitad de 
 - [Qué países y qué reportes hay](#qué-países-y-qué-reportes-hay)
 - [¿En qué países se ve el nombre de la empresa?](#en-qué-países-se-ve-el-nombre-de-la-empresa)
 - [¿Qué campos trae cada base?](#qué-campos-trae-cada-base)
-- [Las trampas de Softrade](#las-trampas-de-softrade)
+- [Lo que conviene saber de Softrade](#lo-que-conviene-saber-de-softrade)
 - [Preguntas frecuentes](#preguntas-frecuentes)
 - [Estado del proyecto](#estado-del-proyecto)
 - [Licencia](#licencia)
@@ -96,10 +96,10 @@ Softrade guarda la sesión **por pestaña**. No alcanza con que estés logueado 
 Si no lo tenés, bajalo de [python.org](https://www.python.org/downloads/). Después, en una terminal:
 
 ```bash
-pip install pandas openpyxl
+pip install pandas openpyxl xlrd
 ```
 
-Eso es todo. Son las dos librerías que leen los Excel.
+Eso es todo. Son las librerías que leen los Excel (`xlrd` solo hace falta para los `.xls` viejos). Si tenés el repo clonado, es lo mismo que `pip install -r requirements.txt`.
 
 ---
 
@@ -202,6 +202,8 @@ ar_importDetalladas_2026-01_2026-07.xlsx
 
 Si el archivo hubiera salido cortado, te lo dice ahí mismo y **no lo marca como listo**.
 
+Si el pedido terminó en varios archivos (varios años, varios países, o un período que Softrade obligó a partir), al final los junta con `merge_run.py` en un solo `consolidado.xlsx`, con una hoja por país y reporte y dos columnas que dicen de qué tramo salió cada fila. Quita las filas repetidas solo donde dos tramos se pisan, te da filas y operaciones del resultado, y **no junta nada** si quedan tramos pendientes o fallidos (salvo que le pidas un consolidado parcial, y entonces te lo dice) o si los archivos de un mismo reporte no tienen las mismas columnas. Si algún tramo vino vacío o mucho más chico que los demás, lo marca para revisarlo antes de entregarte el archivo.
+
 ---
 
 ## Ejemplos de pedidos
@@ -281,7 +283,20 @@ Las **importaciones sí** nombran al importador. Las **exportaciones no nombran 
 
 ### Paraguay dice "Probable"
 
-Los campos de Paraguay se llaman literalmente **"Probable Importador"** y **"Probable Exportador"**. Softrade lo está **infiriendo**, no leyendo un registro oficial. Esa palabra tiene que llegarte siempre, porque un "probable" presentado como dato firme se ve igual que un dato real.
+Los campos de Paraguay se llaman literalmente **"Probable Importador"** y **"Probable Exportador"**. Softrade no explica por qué, y el archivo trae el **RUC** de cada empresa al lado, lo que apunta a que son contribuyentes reales. Esa palabra tiene que llegarte siempre, porque un "probable" presentado como dato firme se ve igual que un dato real.
+
+### No todo nombre es el importador real
+
+Hay dos fuentes de nombres en Softrade, y no significan lo mismo:
+
+- **Importaciones y Exportaciones** salen de la **declaración aduanera**. El importador es el que declaró ante la aduana: la empresa real.
+- **Cargas** sale del **conocimiento de embarque** (BL). El consignatario es a quien la naviera le entrega la carga, y muchas veces no es el comprador: puede ser un forwarder (Kuehne+Nagel, DHL, DSV), una naviera, o "TO ORDER" de un banco cuando la operación va con carta de crédito.
+
+Esto pega justo donde Cargas es la única fuente de nombres: **Brasil y Estados Unidos**. Un ranking de "principales importadores" armado con consignatarios mezcla compradores con logísticas, y las logísticas suben arriba porque consolidan carga de muchos clientes.
+
+La herramienta te lo avisa cuando pedís atribuir a una empresa desde Cargas, y trae un chequeo que mide qué parte de los nombres de un archivo son logísticas o "TO ORDER" antes de que armes nada con ellos. En Estados Unidos, además, conviene dejar afuera los BL master, que son los que van de la naviera al forwarder.
+
+México es un caso a confirmar: su reporte de Cargas filtra por Importador y Proveedor, y trae código arancelario y valor CIF, que son campos de declaración y no de BL.
 
 ### Y ojo con qué tan viejos son los datos
 
@@ -321,7 +336,7 @@ El patrón general es contraintuitivo: **cuanto más rico el país, menos public
 
 Egipto llega hasta **febrero de 2015**, once años atrás. Taiwán a 2017, India a 2018, Sri Lanka a 2019. No sirven para nada actual.
 
-### Dos trampas en Europa
+### Dos detalles de los datos europeos
 
 **Los valores vienen en euros y son FOB**, no dólares CIF como el resto del mundo. Mezclarlos en un mismo análisis está mal aunque conviertas la moneda, porque además cambia la base.
 
@@ -343,7 +358,7 @@ Lo que más sorprende:
 
 Solo lo dan **Ecuador, Bolivia y Chile** con ese nombre. Argentina y México lo tienen disfrazado de `Condición de Venta`, que cumple la misma función. **Los otros 15 reportes medidos no lo traen de ninguna forma.**
 
-Si tu consulta depende del Incoterm, esos cinco países son toda tu lista.
+Si tu consulta depende del Incoterm, esos cinco países son toda tu lista. Del lado exportador, lo traen las exportaciones de Ecuador y Bolivia (medidas el 2026-09-18), Chile como `Cláusula VTA` y Argentina (Exportaciones Detalladas) como `Condición de Venta`. Colombia Exportaciones no consta y el resto de las exportaciones no se midió.
 
 ### La Marca la dan cinco
 
@@ -363,7 +378,7 @@ Costa Rica le sigue de cerca con 48 columnas, pero sin Incoterm.
 
 ### El resumen en una tabla
 
-Las 20 bases medidas hasta ahora, ordenadas por qué tan completas son:
+Las 20 bases de importación medidas el 2026-09-02, ordenadas por qué tan completas son:
 
 | País | FOB | CIF | Importador | Proveedor | Incoterm | Marca |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|
@@ -387,10 +402,10 @@ Las 20 bases medidas hasta ahora, ordenadas por qué tan completas son:
 
 Las ⚠️ están explicadas una por una en la [matriz completa](skills/softrade-batch/references/fields-matrix.md): Paraguay dice "Probable", Argentina y México usan `Condición de Venta`, y Uruguay usa `VNA` en vez de CIF.
 
-**Esto cubre las importaciones.** Del lado exportador no hay ninguna medición todavía salvo Argentina, así que la columna `Comprador` está documentada como existente pero nunca se vio en un archivo real.
+**Esto cubre las importaciones.** Del lado exportador hay medición de Argentina y, desde la segunda pasada del 2026-09-18, de Bolivia, Chile, Colombia y Ecuador (solo el conteo de columnas y los campos clave que se anotaron, no la lista completa). La columna `Comprador` ya se vio en un archivo real en Ecuador, Colombia y Bolivia. El detalle está en la [matriz completa](skills/softrade-batch/references/fields-matrix.md).
 
 
-## Las trampas de Softrade
+## Lo que conviene saber de Softrade
 
 Todo esto está verificado a mano contra el sitio real. Sirve incluso si nunca usás esta herramienta.
 
@@ -486,7 +501,7 @@ Hay tres capas de relevamiento y no están igual de avanzadas. Vale la pena dist
 |---|---|---|
 | **Catálogo** | Qué reportes ofrece cada país | ✅ Completo, 78 países |
 | **Empresas y vigencia** | Quién nombra al importador o al exportador, y hasta qué fecha llegan los datos | ✅ Completo, las dos direcciones, 78 países |
-| **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **22 reportes de muchos más** |
+| **Columnas** | Qué campos trae el Excel de verdad | ⚠️ **32 reportes de muchos más** |
 
 Las dos primeras capas están además en un archivo legible por máquina,
 [`catalog.json`](skills/softrade-batch/references/catalog.json), y hay un chequeo
@@ -494,23 +509,25 @@ automático (`preflight.py`) que **avisa antes de bajar nada** si tu consulta es
 imposible: un reporte que ese país no tiene, "las expo de mi empresa" en un país
 que no nombra exportadores, o un pedido de datos recientes a una base congelada.
 
-Los 22 medidos son las importaciones de los 19 países latinoamericanos, Cargas Marítimas de Brasil y las dos exportaciones de Argentina, todos con archivo descargado y contado. De otras siete exportaciones (Costa Rica, Ecuador, Nicaragua, Perú, Paraguay, Uruguay y Venezuela) se sabe que tienen datos y cuántas filas trae una partida chica, pero sus columnas todavía no se inspeccionaron. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
+Los 32 medidos (los que tienen `columns_measured` en `catalog.json`) son las importaciones de los 19 países latinoamericanos, Cargas Marítimas Ingresos de Brasil, cuatro reportes de Argentina (Importaciones, Otras Operaciones y las dos exportaciones) y ocho de una segunda pasada del 2026-09-18: las exportaciones de Bolivia, Chile, Colombia y Ecuador, Histórico Importaciones y Cargas Ingresos de Ecuador, y Cargas Marítimas Salidas y Cargas Histórico Ingresos de Brasil. Todos tienen archivo descargado y contado; de los ocho de la segunda pasada se guardó el conteo, no la lista de columnas. De otras seis exportaciones (Costa Rica, Nicaragua, Perú, Paraguay, Uruguay y Venezuela) se sabe que tienen datos y cuántas filas trae una partida chica, pero sus columnas todavía no se inspeccionaron. Están en [`fields-matrix.md`](skills/softrade-batch/references/fields-matrix.md) y [`columns-latam.md`](skills/softrade-batch/references/columns-latam.md).
 
 Argentina además está verificada punta a punta en cuatro reportes: Importaciones, Importaciones Detalladas, Exportaciones Detalladas y Otras Operaciones.
 
-**Lo más grande que falta:** las columnas de todo el lado exportador salvo Argentina, los 16 países de Asia y África que sí nombran empresas (más Ucrania), y **8 de las 14 familias de reporte que nunca se abrieron**: Histórico, las cuatro variantes de Cargas que no son las marítimas de Brasil, Zona Franca, Zona Libre, Tránsitos y Totalizadas.
+**Lo más grande que falta:** las columnas del lado exportador fuera de Argentina, Bolivia, Chile, Colombia y Ecuador, los 16 países de Asia y África que sí nombran empresas (más Ucrania), y **5 de las 14 familias de reporte que nunca se abrieron**: Cargas Totales, Cargas Aéreas y Terrestres, Zona Franca y Zona Libre, Tránsitos y Totalizadas. Histórico, Cargas Ingresos y Cargas Histórico ya tienen un reporte medido cada una; todas las bases Histórico relevadas resultaron congeladas (Ecuador en 2017, Colombia en 2021, Bolivia en 2023).
 
 El orden para completarlo, con el país más barato elegido para cada familia, está en [`coverage.md`](skills/softrade-batch/references/coverage.md). El flujo es igual en todos, así que extenderlo es sobre todo cuestión de usarlo y documentar.
 
 ### Tests
 
-71 tests. Desde la raíz del repo:
+Desde la raíz del repo:
 
 ```bash
 python -m unittest discover -s tests -b
 ```
 
-No piden nada que la skill no pida ya (`pandas` y `openpyxl`). El detalle de qué cubre cada archivo está en [`tests/README.md`](tests/README.md).
+Usan las mismas librerías que los scripts, listadas en [`requirements.txt`](requirements.txt) (`pip install -r requirements.txt`). El detalle de qué cubre cada archivo está en [`tests/README.md`](tests/README.md).
+
+Si tocás `tools/build_catalog.py` (el que genera `catalog.json` a partir de `references/*.md`), `python tools/build_catalog.py --check`, también desde la raíz del repo, compara sin escribir nada y sale con `1` y un resumen de diferencias si `catalog.json` quedó desactualizado. Para regenerarlo, `python tools/build_catalog.py`. Es un paso de mantenimiento del repo: la skill instalada no trae `tools/`.
 
 Cada test corresponde a un bug que pasó de verdad o a algo que `SKILL.md` promete por escrito: que un pedido de 12 meses sea **una** consulta y no doce, que partir un período no ensanche la consulta perdiendo el filtro de empresa, que un trabajo fallido no se reintente antes que los pendientes, y que el `Ordinal` mexicano, que trae el ítem pegado al pedimento, no infle el conteo de operaciones.
 

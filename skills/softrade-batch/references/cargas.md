@@ -7,13 +7,66 @@ Captured live 2026-09-02 by opening each form and reading its filters.
 
 ## Why this matters
 
-Cargas records are **manifests, not customs declarations**. They carry the two
-trading parties by name, plus vessel, container and port detail that customs data
-never has. For Brasil, Mexico and the United States, this is the **only** place
-company names appear.
+Cargas records are **manifests, not customs declarations**. They carry names,
+plus vessel, container and port detail that customs data never has. For Brasil,
+Mexico and the United States, this is the **only** place company names appear.
 
 Never tell a user a country has no company data without checking its Cargas
-reports first.
+reports first. And never present those names as "the importer" without the caveat
+in the next section.
+
+## The consignee is not always the buyer
+
+A customs declaration names the **importer of record**: whoever cleared the goods
+and pays the duties. In the Spanish-speaking customs reports (Importaciones /
+Exportaciones) that is the real trading company.
+
+A bill of lading names whoever **the carrier delivers to**, and that is often not
+the buyer:
+
+- **Master bills** go from the shipping line to a forwarder or NVOCC. Their
+  consignee is the logistics company (Kuehne+Nagel, DHL, DSV, Expeditors and the
+  like), and the shipper is often its partner agent at origin.
+- **"TO ORDER" / "A LA ORDEN"** bills name no one, or a bank, because the goods are
+  released against a letter of credit. The real buyer may appear only as the
+  **Notify** party.
+- A carrier's own house or the customs broker can also appear as consignee.
+
+So a ranking of "top importers" built on Cargas mixes buyers with forwarders, and
+the forwarders tend to float to the top because they consolidate many clients.
+
+What to do per country:
+
+- **US**: `Incluir Masters` off keeps house bills, whose consignee is much more
+  often the real importer. Leave masters out for anything you rank or aggregate
+  by company. (It also avoids counting one shipment twice.)
+- **BR**: the file has separate `Forwarder` and `Notify` columns. When the
+  Consignatario is a logistics company, Notify is the best hint of the real buyer.
+- **MX Cargas Totales**: its form filters by `Importador` and `Proveedor` and
+  carries `Código SA` and `U$S CIF`, which are customs-declaration fields, not
+  bill-of-lading ones. It may be declaration-based despite the family name. Treat
+  that as unconfirmed until the file is inspected.
+- **Everywhere in this family**: before attributing volume to a company, look at
+  the top consignees. If logistics firms or "TO ORDER" lead the list, say so to
+  the user and report the buyer-level ranking only after excluding them.
+
+`scripts/preflight.py` raises this caveat automatically when an import-side
+(Ingresos) Cargas report is used for a by-company question, unless the catalog
+note for that report says the consignee works as the real importer (BR Cargas
+Historico Ingresos). Salidas reports filter by the Shipper, so the caveat does not
+apply to the side the user asks about; the catalog note still reports how often
+their consignees are logistics firms.
+
+To measure it on a real download instead of guessing:
+
+```bash
+python scripts/party_check.py RUN_DIR/downloads/FILE.xlsx
+```
+
+It reports, for every party column, the share of rows that are "TO ORDER", a known
+forwarder or shipping-line brand, or a name built on logistics words, plus the top
+ten names with a flag. Add `--no-names` before sharing the output: the names are
+real companies from licensed data.
 
 ## What each country offers
 
@@ -125,7 +178,23 @@ operator and its foreign supplier. Costa Rica names only the operator.
 For anyone tracking goods that transit Colon or a Costa Rican free zone before
 their final market, these reports are the only visibility there is.
 
+## Counted on 2026-09-18, names not kept
+
+A second survey pass downloaded a small sample (heading 8544 where the form takes
+it, one month) of three
+more Cargas reports. It kept the column count and a few notes (in `catalog.json`
+and `columns-cargas.md`), not the column names:
+
+| Country | Report | Data through | Columns | Names |
+|---|---|---|---|---|
+| **BR** | Cargas Maritimas Salidas | 30/11/2023 | 32 | `Shipper` (exporter), `Consignatario`; 2 in 3 consignees in the sample were logistics firms |
+| **BR** | Cargas Historico Ingresos | 31/01/2020 | 10 | `Consignatario` only; built like a declaration, 99% companies in the sample |
+| **EC** | Cargas Ingresos | 31/07/2026 | 33 | `Consignatario`, `Shipper`; no tariff-code field, filter by Descripcion or Marcas |
+
+BR Cargas Historico Salidas was read off the form only: frozen 07/2018, names the
+`Shipper`.
+
 ## Not yet measured
 
-Column layouts for every Cargas report except Brasil. The filters above are
-verified; what the exported files contain is not.
+Column layouts for every other Cargas report, and the column names of the three
+above. The filters above are verified; what the exported files contain is not.

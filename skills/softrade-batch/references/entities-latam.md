@@ -107,15 +107,17 @@ because the same country behaves differently depending on direction. See
 `columns.md` for the measurement: `Exportador` is the literal string
 `No disponible` in 100% of 53,525 rows.
 
-### Paraguay is inferred, not official
+### Paraguay's names are labelled "Probable"
 
-Paraguay's fields are labelled **"Probable Importador"** and **"Probable
-Exportador"**. Softrade is guessing, from probabilities and history, not reading an
-official record. Always pass that word on to the user. A "probable" match presented
-as fact is the worst failure mode here, because it looks exactly like real data.
+Paraguay's fields are labelled **"Probable Importador"**, **"Probable Exportador"**
+and so on. Softrade does not say why. An earlier version of this file called them
+"inferred, not official", but that came from Argentina's export form (which carries
+a notice about AI-built market estimates), not from anything seen for Paraguay.
 
-Argentina's export form carries a similar notice about an independent service using
-AI to build market estimates.
+What points the other way: the file carries the taxpayer **RUC** next to each name,
+which is what a registered company has and a guess would not. Until that is checked
+(one RUC mapping to one name across a file), relay the label exactly as Softrade
+prints it. Do not upgrade it to "confirmed" or downgrade it to "a guess".
 
 ### Currency of the data varies by years, not months
 
@@ -163,13 +165,39 @@ NCM-SIM into Chile's SACH field and expect a match.
 - **Costa Rica and Panama** number declarations as `Ordinal`, Peru and Uruguay as
   `DUA`, Colombia as `Nro. Declaracion`, Paraguay as `Despacho`.
 
+### Second pass, 2026-09-18: newer cutoffs and the Historico bases
+
+The tables above are the 2026-09-02 snapshot. A second pass on 2026-09-18 read the
+pre-filled period again on some forms and opened reports the first pass skipped.
+Recorded in `catalog.json` as `"surveyed": "2026-09-18"`:
+
+| Report | Data through | Names |
+|---|---|---|
+| BO Exportaciones | 31/08/2026 | Exportador, Comprador |
+| CO Exportaciones | 31/07/2026 | Exportador, Comprador |
+| EC Exportaciones | 06/09/2026 | Exportador, Comprador |
+| BR Exportaciones | 31/08/2026 | nobody: anonymous statistics, filters by Puerto and Estado |
+| BO Historico Imp. / Exp. | **09/2023** | nobody |
+| CO Historico Imp. / Exp. | **12/2021** | *Probable* on both sides |
+| EC Historico Imp. / Exp. | **12/2017** | Importador / Exportador; no counterparty filter |
+| BR Cargas Maritimas Salidas | 30/11/2023 | Shipper (exporter), Consignatario |
+| BR Cargas Historico Ingresos | **01/2020** | Consignatario only |
+| BR Cargas Historico Salidas | **07/2018** | Shipper only |
+
+**Every Historico base surveyed is frozen.** Historico is the older data held
+apart from the current report, not a richer copy of it: do not offer it for
+recent periods. Colombia's Historico carries the same *Probable* label as Paraguay;
+relay it the same way.
+
 ## Column layouts
 
-Measured for all 19 Latin American countries, from real downloads. See
+Import side: measured for all 19 Latin American countries, from real downloads. See
 `columns-latam.md`, which carries the row, record and column counts of each, plus
-the full column list per country.
+the full column list per country. Export side: Argentina, plus the column counts of
+BO, CL, CO and EC from the 2026-09-18 pass (`fields-matrix.md`).
 
 ## Still not verified
 
-Export-side column layouts, and every country outside Latin America. The
-import-side sweep above is complete.
+Export-side column layouts outside AR, BO, CL, CO and EC, the column names of the
+2026-09-18 samples, and every country outside Latin America. The import-side sweep
+above is complete.

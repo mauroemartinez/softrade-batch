@@ -2,7 +2,7 @@
   <rect width="880" height="420" rx="10" fill="#ffffff"/>
   <rect x="0.5" y="0.5" width="879" height="419" rx="10" fill="none" stroke="#d8dee4"/>
 
-  <text x="28" y="40" font-size="17" font-weight="700" fill="#1f2328">La trampa: el tope de 30.000 cuenta registros, no filas del Excel</text>
+  <text x="28" y="40" font-size="17" font-weight="700" fill="#1f2328">Ojo: el tope de 30.000 cuenta registros, no filas del Excel</text>
   <text x="28" y="63" font-size="13" fill="#636c76">Una declaración aduanera se abre en una fila por ítem. Por eso contar filas no te dice si el archivo está cortado.</text>
 
   <!-- left: one record -->

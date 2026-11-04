@@ -69,6 +69,7 @@ La fuente de verdad legible por máquina. Hoy ese conocimiento está disperso en
 {
   "meta": {
     "captured": "2026-09-02",              // fecha del relevamiento de las tablas fuente
+    "catalog_version": "2026-09-18+3f6bcde3", // "<fecha más nueva>+<hash>", lo que copia el manifest
     "record_cap": 30000,
     "max_months_per_query": 12,
     "vitality_thresholds_months": { "viva": 4, "rezagada": 18 }  // > rezagada = congelada
@@ -126,12 +127,13 @@ La fuente de verdad legible por máquina. Hoy ese conocimiento está disperso en
 | `countries.<CC>.reports` | solo las claves que ese país **ofrece** | `catalog.md`, tablas por continente |
 | `cutoff` | ISO `YYYY-MM-DD` del último dato, o `null` si nunca se relevó | columna "Data through" / "Último dato" de `entities-*.md` y `fields-matrix.md` |
 | `vitality` | **no se guarda** — `preflight.py` la calcula contra la fecha de hoy con `vitality_thresholds_months` | — |
-| `names.local` | `"Importador"` / `"Exportador"` si hay columna **y filtro**; `null` si no hay columna; `"no_disponible"` si la columna existe pero es `No disponible` en el 100% y no hay filtro; `"Probable Importador"` etc. si es inferida | `entities-*.md` (columnas Importador/Exportador) + notas de `columns.md` para el caso `no_disponible` de AR |
+| `names.local` | `"Importador"` / `"Exportador"` si hay columna **y filtro**; `null` si no hay columna; `"no_disponible"` si la columna existe pero es `No disponible` en el 100% y no hay filtro; `"Probable Importador"` etc. si Softrade la rotula así | `entities-*.md` (columnas Importador/Exportador) + notas de `columns.md` para el caso `no_disponible` de AR |
 | `names.counterparty` | `"Proveedor"` / `"Comprador"` / `"Shipper"` / `"Consignatario"` si existe, si no `null` | `entities-*.md` (Proveedor/Comprador), `cargas.md` (Shipper/Consignatario) |
-| `inferred` | `true` en Paraguay (todos los reportes) y en AR `exportDetalladas` (aviso de estimación por IA) | `entities-latam.md`, `columns.md` |
-| `columns_measured` | entero si hay un Excel real contado, `null` si no | `fields-matrix.md` + `columns-latam.md`; hoy solo 20 reportes tienen número |
+| `inferred` | `true` en dos casos distintos: AR `exportDetalladas` (aviso de estimación por IA en el formulario) y los nombres que Softrade rotula *Probable* sin explicar por qué (Paraguay, todos los reportes; Histórico Imp./Exp. de Colombia). El campo no distingue uno de otro: lo distingue el prefijo `Probable` de `names.local` | `entities-latam.md`, `columns.md` |
+| `columns_measured` | entero si hay un Excel real contado, `null` si no | `fields-matrix.md` + `columns-latam.md`; hoy 32 reportes tienen número |
+| `surveyed` | fecha ISO de la pasada que relevó esa entrada, solo cuando no es `meta.captured` (hoy `2026-09-18`, la segunda pasada) | `fields-matrix.md`, `coverage.md` |
 | `nomenclature` | `NCM-SIM`, `NANDINA`, `SAC`, `SACH`, `Codigo NCM`, `Codigo SA`, `Codigo NC`, `Codigo JTS`, `UKTWED`, `Codigo CN FEA` | tabla "Nomenclature" de `entities-*.md` |
-| `note` | texto corto en castellano, solo cuando hay una trampa puntual (AR export sin columna, UY sin CIF, EU en euros y FOB, etc.) | `fields-matrix.md` sección "las ⚠️ una por una" |
+| `note` | texto corto en castellano, solo cuando hay un detalle puntual a advertir (AR export sin columna, UY sin CIF, EU en euros y FOB, etc.) | `fields-matrix.md` sección "las ⚠️ una por una" |
 
 Cubrir **los 78 países**. Los que no nombran a nadie y no están medidos igual van,
 con `names` en `null` y `columns_measured` en `null`: preflight necesita saber que
@@ -225,7 +227,7 @@ Casos que tienen que dar WARN o IMPOSIBLE (todos ya documentados en los md):
 |---|---|---|
 | reporte no ofrecido por el país | IMPOSIBLE | "CL no tiene Importaciones Detalladas; el estándar es lo máximo" |
 | `--by-company` y `names.local` nulo | IMPOSIBLE | según país |
-| `names.local` inferido (PY, AR expo det) | WARN | "Paraguay dice 'Probable': es inferido, no un registro oficial" |
+| `names.local` rotulado *Probable* (PY, CO Histórico) o `inferred` (AR expo det) | WARN | "Paraguay dice 'Probable': pasá la palabra tal cual (Softrade no explica el motivo; trae RUC)" |
 | base congelada (>18 meses) | WARN; IMPOSIBLE si el rango es todo posterior al corte y la base ya estaba congelada en `meta.captured` | "MX Importaciones está congelada en 11/2021" |
 | rango todo posterior al corte de una base viva | WARN | "el catálogo es una foto del 2026-09-02: abrí el formulario y mirá el período precargado, que es el máximo real" |
 | fechas mal formadas o rango al revés | IMPOSIBLE | "el período está al revés" |
@@ -251,8 +253,15 @@ está bien):
    *Como quedó:* así es para bases vivas (el corte del catálogo envejece y el
    formulario manda). Si la base ya estaba congelada al relevar el catálogo y el
    rango entero cae después del corte, se rechaza: no hay nada que bajar.
-6. Guardar en el manifest `"catalog_version": meta.captured` y el id canónico del
+6. Guardar en el manifest `"catalog_version": meta.catalog_version` y el id canónico del
    reporte en cada job.
+   *Como quedó:* `meta.catalog_version` lo escribe `tools/build_catalog.py` con la
+   forma `"<fecha>+<hash>"` (la fecha de relevamiento más nueva entre
+   `meta.captured` y los `surveyed`, más 8 caracteres de sha256 del catálogo), así
+   que cambia con cualquier corrección de una entrada aunque no haya pasada nueva.
+   `_catalog.version()` cae a `meta.captured` si el campo falta. Los manifiestos
+   viejos con una fecha sola (`"2026-09-02"`) se siguen aceptando: `run_state.py check`
+   los compara contra `meta.captured` en vez de avisar en cada corrida vieja.
 7. Que `plan_run.py` corra `preflight` internamente y pegue sus `messages_es` en un
    campo `"preflight": [...]` del manifest, para que una corrida retomada en otro
    chat los tenga sin recalcular.
@@ -284,7 +293,8 @@ No cambiar el formato humano.
 ### Criterios de aceptación — **hecho 2026-09-03**
 
 - [x] `catalog.json` cubre 78 países y los 25 `report_types` (219 combinaciones
-      país/reporte, 24 con conteo de columnas real). Generado por
+      país/reporte, 24 con conteo de columnas real al cierre; 32 después de la
+      segunda pasada del 2026-09-18). Generado por
       `tools/build_catalog.py`; `test_catalog.py` valida forma y cobertura.
 - [x] `preflight.py` con veredictos OK / WARN / IMPOSSIBLE y exit 0/1/2;
       `--json` con `messages_es` para relevar al usuario. 14 casos en `test_preflight.py`.
@@ -293,8 +303,8 @@ No cambiar el formato humano.
       12 meses quedó igual. `catalog_version` e id canónico en el manifiesto.
       `--skip-preflight` para saltear.
 - [x] `run_state.py next --json` y `status --json`; el formato humano intacto.
-- [x] `python -m unittest discover -s tests` → 34 tests OK al cierre; hoy son 101
-      (`python -m unittest discover -s tests -b`).
+- [x] `python -m unittest discover -s tests` → 34 tests OK al cierre (hoy:
+      `python -m unittest discover -s tests -b`, detalle en `tests/README.md`).
 - [x] Ni una línea tocada en `site-flow.md`, `cargas.md`, ni en el manejo del navegador.
 
 Módulo compartido nuevo: `scripts/_catalog.py` (carga, resolución de alias,
@@ -312,7 +322,7 @@ la Parte 2. `plan_run.py` también persiste los avisos de preflight en
 
 - **Parte 2 (ChatGPT):** el scaffolding browser-free de la capa de columnas. Prompt
   completo y entregables en `docs/prompt-chatgpt-cobertura.md`. Ya hecho de este
-  lado: los 4 jobs `done rows:0` de `corrida-catalogo` (sesión degradada) quedaron
+  lado: los 4 jobs `done rows:0` de `corrida-catalogo` (búsquedas que Softrade había rechazado por falta de filtro; ver `site-flow.md`) quedaron
   corregidos — AR Exportaciones marcado `done` con sus números reales, BO/CL/CO
   reseteados a `pending`.
 - **Parte 3 (Claude + login del usuario):** correr las sesiones de Softrade

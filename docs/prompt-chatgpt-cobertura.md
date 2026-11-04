@@ -84,7 +84,9 @@ de reporte en texto libre ("Cargas Maritimas - Ingresos"). Reescribilo:
   `records`. No los rehagas.
 - Mantené el esquema exacto que leen `run_state.py` / `plan_run.py` (mirá esos
   scripts): `version`, `label`, `created_at`, `download_dir`, `max_months`,
-  `catalog_version` (poné `"2026-09-02"`), `jobs[]` con `country, report,
+  `catalog_version` (copiá `meta.catalog_version` de `catalog.json`, con la forma
+  `"<fecha>+<hash>"`; un manifiesto viejo con la fecha sola, `"2026-09-02"`, se
+  sigue aceptando), `jobs[]` con `country, report,
   date_from, date_to, filters, status, file, rows, records, attempts, note,
   updated_at`. Validá con `run_state.py check corrida-catalogo` hasta que salga 0.
 - Para `date_from`/`date_to`, en vez del placeholder usá una convención clara y

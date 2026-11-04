@@ -10,4 +10,8 @@ Cada job usa un filtro chico de partida para medir columnas sin descargar volume
 
 Los Excel descargados van en el `downloads/` de cada sub-corrida (`split-*/downloads/`) y no se versionan.
 
+## Segunda pasada del 2026-09-18, fuera de estos manifiestos
+
+Hubo una segunda pasada de relevamiento que no pasó por `manifest.json` ni por los sub-manifiestos: sus 8 muestras quedaron en `runs/cobertura-2026-09-18/downloads/` (no versionado, sin manifiesto propio). Sus resultados están en `catalog.json` (entradas con `"surveyed": "2026-09-18"`), en `fields-matrix.md` y en las casillas de `coverage.md`, pero los jobs equivalentes del maestro (BO/CL/CO export, EC historicoImport/cargasIngresos, BR cargasMaritimasSalidas/cargasHistoricoIngresos, entre otros) siguen en `pending`. Al copiar resultados al maestro, tenerlo en cuenta para no volver a medirlos sin querer.
+
 La fecha en el nombre que pone Softrade (`detalle_{CC}{report}_{Y}-{M}-{D}-{HMMSS}.xlsx`) no es una fecha de calendario: el mes es el de JavaScript, base 0 (`8` = septiembre), `D` parece ser el dia de la semana (0 = domingo) y la hora no lleva ceros. Para fechar una muestra, usar la fecha de modificacion del archivo.

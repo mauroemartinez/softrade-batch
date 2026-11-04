@@ -96,7 +96,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 ### EC / cargasIngresos
 
-<!-- PENDIENTE: medicion en vivo -->
+<!-- PENDIENTE: transcribir las columnas del Excel del 2026-09-18 -->
 
 - Pais: **EC Ecuador**
 - Reporte: `cargasIngresos` (Cargas - Ingresos)
@@ -104,7 +104,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 - Ultimo dato conocido: 31/07/2026
 - Nombres esperados: Consignatario / Shipper
 
-Filas: pendiente. Registros: pendiente. Columnas: pendiente.
+Filas: pendiente. Registros: pendiente. Columnas: **33** (muestra del 2026-09-18, 07/2026, sin filtro de partida porque el reporte no lo admite; el `8544` del nombre del archivo es solo el rotulo del job; se guardo el conteo, no los nombres).
 
 | # | Column | Example |
 |---|---|---|
@@ -112,6 +112,9 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Manifiesto sin campo de partida: se filtra por Descripcion o Marcas.
+- Trae BL Master, Consolidador y RUC del consignatario.
+- En la muestra, 1 de cada 3 consignatarios era logistica.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### PA / cargasMaritimasIngresos
@@ -276,15 +279,15 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 ### BR / cargasMaritimasSalidas
 
-<!-- PENDIENTE: medicion en vivo -->
+<!-- PENDIENTE: transcribir las columnas del Excel del 2026-09-18 -->
 
 - Pais: **BR Brasil**
 - Reporte: `cargasMaritimasSalidas` (Cargas Marítimas - Salidas)
 - Nomenclatura: Codigo NCM
-- Ultimo dato conocido: no relevado
-- Nombres esperados: Consignatario / Shipper
+- Ultimo dato conocido: 30/11/2023 (congelada)
+- Nombres esperados: Shipper / Consignatario
 
-Filas: pendiente. Registros: pendiente. Columnas: pendiente.
+Filas: pendiente. Registros: pendiente. Columnas: **32** (muestra del 2026-09-18, partida 8544, 11/2023; se guardo el conteo, no los nombres).
 
 | # | Column | Example |
 |---|---|---|
@@ -292,6 +295,9 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Lado exportador del manifiesto: `Shipper` es el exportador y `Consignatario` la contraparte. Trae `Notify` y `Forwarder`.
+- En la muestra medida, 2 de cada 3 consignatarios eran logisticas: no son el comprador.
+- Datos de contacto de ambas partes, como en Ingresos: no redistribuir.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### PA / cargasMaritimasSalidas
@@ -336,15 +342,15 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 ### BR / cargasHistoricoIngresos
 
-<!-- PENDIENTE: medicion en vivo -->
+<!-- PENDIENTE: transcribir las columnas del Excel del 2026-09-18 -->
 
 - Pais: **BR Brasil**
 - Reporte: `cargasHistoricoIngresos` (Cargas Histórico - Ingresos)
 - Nomenclatura: Codigo NCM
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 31/01/2020 (congelada)
+- Nombres esperados: Consignatario / ninguno
 
-Filas: pendiente. Registros: pendiente. Columnas: pendiente.
+Filas: pendiente. Registros: pendiente. Columnas: **10** (muestra del 2026-09-18, partida 8544, 01/2020; se guardo el conteo, no los nombres).
 
 | # | Column | Example |
 |---|---|---|
@@ -352,6 +358,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Se arma como declaracion, no como manifiesto: Aduana, Estado, NCM de 8 digitos, todos los transportes.
+- En la muestra el 99% de los consignatarios eran empresas: funciona como importador real. No nombra contraparte.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### BR / cargasHistoricoSalidas
@@ -361,8 +369,8 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 - Pais: **BR Brasil**
 - Reporte: `cargasHistoricoSalidas` (Cargas Histórico - Salidas)
 - Nomenclatura: Codigo NCM
-- Ultimo dato conocido: no relevado
-- Nombres esperados: unknown / unknown
+- Ultimo dato conocido: 31/07/2018 (congelada)
+- Nombres esperados: Shipper / ninguno
 
 Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
@@ -372,6 +380,7 @@ Filas: pendiente. Registros: pendiente. Columnas: pendiente.
 
 #### Reading this correctly
 
+- Formulario leido el 2026-09-18, sin Excel: mismo formato que Historico Ingresos, del lado exportador.
 - Pendiente: completar despues de correr `inspect_download.py` sobre un Excel real.
 
 ### EC / cargasSalidas
