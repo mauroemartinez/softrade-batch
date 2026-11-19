@@ -116,7 +116,7 @@ Dentro de Claude Code, escribí:
 Y después:
 
 ```
-/plugin install softrade-batch@sls-global
+/plugin install softrade-batch@globalaize
 ```
 
 **Con el link del repo alcanza.** No hace falta descargar ni configurar nada a mano.
@@ -544,3 +544,7 @@ MIT. Ver [LICENSE](LICENSE).
 Podés usarlo, modificarlo y meterlo en algo comercial. Lo único que se pide es que mantengas el aviso de copyright.
 
 Esto no está afiliado a Softrade de ninguna manera. Es una herramienta independiente que maneja el sitio como lo haría una persona, con tu propia cuenta.
+
+---
+
+Hecho por **Mauro E. Martinez**, [GlobalAIze](https://www.globalaize.com). ¿Querés tus datos de comercio internacional unidos en un tablero o en una base que se consulta sola? [www.globalaize.com](https://www.globalaize.com)
