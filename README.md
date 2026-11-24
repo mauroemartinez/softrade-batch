@@ -1,5 +1,7 @@
 # softrade-batch
 
+[![tests](https://github.com/mauroemartinez/softrade-batch/actions/workflows/tests.yml/badge.svg)](https://github.com/mauroemartinez/softrade-batch/actions/workflows/tests.yml)
+
 **Bajá datos de comercio exterior de [Softrade](https://app.softrade.info) pidiéndolos en castellano, sin pelear con el formulario.**
 
 Vos escribís esto:
